@@ -1,0 +1,28 @@
+% ---------------------------------------------------------------------------
+% ghbmath -- math shorthands shared by every build path.
+%
+% Loaded by the HTML conversion, the PDF build, and the standalone wrapper used
+% to extract figures. Put anything here that you want available both in body
+% text and inside a tikzpicture.
+% ---------------------------------------------------------------------------
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{ghbmath}[2026/08/16 shared math macros]
+
+\RequirePackage{amsmath}
+\RequirePackage{amssymb}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+
+\DeclareMathOperator{\poly}{poly}
+\DeclareMathOperator{\OPT}{OPT}
+
+\newcommand{\bigO}[1]{O\!\left(#1\right)}
+\newcommand{\set}[1]{\left\{#1\right\}}
+\newcommand{\abs}[1]{\left\lvert#1\right\rvert}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+
+\endinput

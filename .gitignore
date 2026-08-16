@@ -1,0 +1,23 @@
+# Build output and caches
+_site/
+.cache/
+
+# LaTeX droppings, in case you compile a page to PDF locally
+*.aux
+*.log
+*.out
+*.toc
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.dvi
+*.pdf
+!assets/**/*.pdf
+
+# LaTeXML intermediates
+*.xml.latexml
+LaTeXML.cache
+
+.DS_Store

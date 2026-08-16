@@ -1,0 +1,53 @@
+% ---------------------------------------------------------------------------
+% ghbtikz -- TikZ libraries and house drawing styles.
+%
+% Loaded by the standalone wrapper the build script generates for each
+% extracted tikzpicture, and by ghb.sty when building a PDF. The HTML path
+% never loads it: figures are already SVG by the time LaTeXML runs, so LaTeXML
+% is spared TikZ entirely.
+%
+% Anything used *inside* a tikzpicture must be reachable from here.
+% ---------------------------------------------------------------------------
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{ghbtikz}[2026/08/16 tikz setup and house styles]
+
+\RequirePackage{ghbmath}
+\RequirePackage{tikz}
+
+\usetikzlibrary{
+  arrows.meta,
+  positioning,
+  calc,
+  fit,
+  backgrounds,
+  decorations.pathmorphing,
+  decorations.pathreplacing,
+  patterns,
+  shapes.geometric,
+  shapes.misc,
+  matrix,
+  graphs,
+  quotes,
+  angles
+}
+
+% House style for graph drawings, so figures look like a set rather than a
+% pile. Override per-picture where a diagram genuinely needs something else.
+%
+% Note on colour: the build converts pure black to `currentColor` in the SVG,
+% so anything drawn in default black automatically follows the page's text
+% colour and works in both light and dark themes. Greys are given as
+% black!NN, which resolves to a fixed grey -- fine for fills, but avoid it for
+% anything that must stay legible against a dark background.
+\tikzset{
+  vertex/.style   = {circle, draw, thick, minimum size=6.5mm, inner sep=0pt,
+                     font=\small},
+  vertexfill/.style = {vertex, fill=black!8},
+  edge/.style     = {thick},
+  arc/.style      = {thick, -{Stealth[length=2.4mm]}},
+  elabel/.style   = {font=\footnotesize, inner sep=1.5pt},
+  ghost/.style    = {draw=none, fill=none},
+  every picture/.style = {line cap=round, line join=round},
+}
+
+\endinput

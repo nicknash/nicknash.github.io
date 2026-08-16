@@ -1,0 +1,64 @@
+% ---------------------------------------------------------------------------
+% ghb -- the package every page on the site loads.
+%
+%   \usepackage{ghb}
+%
+% Provides the theorem environments, the metadata commands the build script
+% reads, and the shared math macros. It also loads TikZ, but only when
+% building a PDF: during the HTML build the figures have already been turned
+% into SVG, so TikZ would be dead weight (and a source of conversion bugs).
+%
+% The build script signals the HTML path by defining \ghbHTML before the
+% document is read. Nothing else should define it.
+% ---------------------------------------------------------------------------
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{ghb}[2026/08/16 site-wide document setup]
+
+\RequirePackage{ghbmath}
+\RequirePackage{amsthm}
+\RequirePackage{graphicx}
+\RequirePackage{hyperref}
+
+\ifdefined\ghbHTML
+  % HTML build: figures are pre-rendered SVG, so skip TikZ.
+\else
+  \RequirePackage{ghbtikz}
+  \RequirePackage[margin=1.1in]{geometry}
+\fi
+
+% ---- Metadata --------------------------------------------------------------
+% Read straight out of the .tex source by the build script, which is why they
+% are plain one-argument commands rather than anything clever.
+%
+%   \summary{...}  one or two sentences for the posts index
+%   \draft         omit this page from the index and from the sitemap
+%
+% \title, \date and \author are the standard LaTeX ones. Use ISO dates
+% (\date{2026-08-16}) so the index can sort them.
+
+\newcommand{\ghbsummaryvalue}{}
+\newcommand{\summary}[1]{\renewcommand{\ghbsummaryvalue}{#1}}
+\newcommand{\draft}{}
+
+% ---- Theorem environments --------------------------------------------------
+% Numbered within section, sharing one counter so numbering reads in document
+% order (Theorem 2.1, Lemma 2.2, ...) the way most journals set it.
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{conjecture}[theorem]{Conjecture}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{problem}[theorem]{Problem}
+
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{note}[theorem]{Note}
+
+\endinput

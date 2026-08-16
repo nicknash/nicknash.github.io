@@ -1,0 +1,70 @@
+name: Build and deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Allow one deploy at a time, but let a newer push supersede a queued one.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Figures are cached by content hash, so an unchanged tikzpicture is
+      # never recompiled. Keyed on the sources that can affect rendering.
+      - name: Restore figure cache
+        uses: actions/cache@v4
+        with:
+          path: .cache/figures
+          key: figures-${{ hashFiles('content/**/*.tex', 'lib/*.sty') }}
+          restore-keys: figures-
+
+      # A targeted TeX Live rather than texlive-full: this is roughly 700MB
+      # instead of 5GB, and covers standalone + pgf/tikz + amsthm + luatex,
+      # which is everything the build actually invokes. The STIX web fonts are
+      # committed under assets/fonts, so no font packages are needed here.
+      - name: Install TeX Live, LaTeXML and dvisvgm
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            latexml \
+            dvisvgm \
+            texlive-latex-base \
+            texlive-latex-recommended \
+            texlive-latex-extra \
+            texlive-pictures \
+            texlive-luatex \
+            texlive-science \
+            texlive-fonts-recommended
+          latexml --VERSION
+          dvisvgm --version
+
+      - name: Build site
+        run: python3 build/build.py --verbose
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

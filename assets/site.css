@@ -1,0 +1,701 @@
+/* ===========================================================================
+   Site styles.
+
+   The goal is a page that reads like a well-set journal article but behaves
+   like a web page: one column at a comfortable measure, real small-caps
+   theorem heads, math set in a proper OpenType MATH font, and diagrams that
+   follow the text colour into dark mode.
+
+   Structure:
+     1. Fonts
+     2. Theme tokens
+     3. Base typography
+     4. Page furniture (header, nav, footer)
+     5. Document body -- LaTeXML output
+     6. Math
+     7. Figures
+     8. Theorems and proofs
+     9. Bibliography and footnotes
+    10. Posts index
+    11. Responsive and print
+
+   Selectors prefixed .ltx_ come from LaTeXML; do not rename them.
+   =========================================================================== */
+
+/* --- 1. Fonts ----------------------------------------------------------- */
+/* Subset to Latin + common symbols by build/make-fonts.sh. The math face is
+   shipped whole and is only fetched by browsers on pages that contain math,
+   since a font is downloaded only when something actually renders in it. */
+
+@font-face {
+  font-family: "STIX Two Text";
+  src: url("/assets/fonts/STIXTwoText-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "STIX Two Text";
+  src: url("/assets/fonts/STIXTwoText-Italic.woff2") format("woff2");
+  font-weight: 400; font-style: italic; font-display: swap;
+}
+@font-face {
+  font-family: "STIX Two Text";
+  src: url("/assets/fonts/STIXTwoText-Bold.woff2") format("woff2");
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "STIX Two Text";
+  src: url("/assets/fonts/STIXTwoText-BoldItalic.woff2") format("woff2");
+  font-weight: 700; font-style: italic; font-display: swap;
+}
+@font-face {
+  font-family: "STIX Two Math";
+  src: url("/assets/fonts/STIXTwoMath-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+
+/* --- 2. Theme tokens ---------------------------------------------------- */
+
+:root {
+  --serif: "STIX Two Text", Charter, "Bitstream Charter", Cambria, Georgia,
+           serif;
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, Arial,
+          sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+          "Liberation Mono", monospace;
+
+  --measure: 34rem;         /* ~68 characters at the body size */
+  --gutter: 1.5rem;
+
+  /* Warm paper rather than pure white: easier on the eye for long reading,
+     and it keeps the black of the diagrams from vibrating. */
+  --bg:        #fdfcf9;
+  --bg-sunk:   #f4f2ec;
+  --fg:        #17171a;
+  --fg-muted:  #5f5e5a;
+  --fg-faint:  #86847e;
+  --rule:      #e0ddd4;
+  --rule-firm: #c9c5b8;
+  --accent:    #9c3d1c;
+  --accent-bg: #9c3d1c14;
+  --shadow:    0 1px 2px #0000000d, 0 4px 14px #00000008;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:        #121316;
+    --bg-sunk:   #1a1b1f;
+    --fg:        #e9e7e1;
+    --fg-muted:  #a3a09a;
+    --fg-faint:  #7d7a74;
+    --rule:      #2b2c31;
+    --rule-firm: #3d3e45;
+    --accent:    #e9a072;
+    --accent-bg: #e9a07216;
+    --shadow:    none;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg:        #121316;
+  --bg-sunk:   #1a1b1f;
+  --fg:        #e9e7e1;
+  --fg-muted:  #a3a09a;
+  --fg-faint:  #7d7a74;
+  --rule:      #2b2c31;
+  --rule-firm: #3d3e45;
+  --accent:    #e9a072;
+  --accent-bg: #e9a07216;
+  --shadow:    none;
+}
+
+/* --- 3. Base typography ------------------------------------------------- */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  font-size: 118%;              /* ~19px: print-like measure on a screen */
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--serif);
+  font-size: 1rem;
+  line-height: 1.62;
+  font-kerning: normal;
+  font-variant-ligatures: common-ligatures contextual;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+p { margin: 0 0 1.05em; }
+
+/* Hanging indent is wrong for the web, but paragraph separation still wants
+   to be quieter than a full blank line at this measure. */
+a {
+  color: var(--accent);
+  text-decoration-thickness: 0.06em;
+  text-underline-offset: 0.16em;
+}
+a:hover { text-decoration-thickness: 0.12em; }
+
+strong { font-weight: 700; }
+em { font-style: italic; }
+
+code, kbd, samp, pre, tt {
+  font-family: var(--mono);
+  font-size: 0.86em;
+  font-variant-ligatures: none;
+}
+
+code {
+  background: var(--bg-sunk);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.08em 0.32em;
+}
+
+pre {
+  background: var(--bg-sunk);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 0.9rem 1.05rem;
+  overflow-x: auto;
+  line-height: 1.5;
+}
+pre code { background: none; border: 0; padding: 0; font-size: 1em; }
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: 2.2rem 0;
+}
+
+.skip {
+  position: absolute;
+  left: -9999px;
+}
+.skip:focus {
+  left: 1rem; top: 1rem;
+  z-index: 10;
+  background: var(--bg);
+  border: 1px solid var(--rule-firm);
+  border-radius: 6px;
+  padding: 0.5rem 0.9rem;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* --- 4. Page furniture -------------------------------------------------- */
+
+.site-header {
+  border-bottom: 1px solid var(--rule);
+  background: var(--bg);
+}
+
+.bar {
+  max-width: calc(var(--measure) + 12rem);
+  margin: 0 auto;
+  padding: 0.85rem var(--gutter);
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+.brand {
+  font-weight: 700;
+  font-size: 1.02rem;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+  text-decoration: none;
+}
+
+.bar nav {
+  display: flex;
+  gap: 1.1rem;
+  margin-left: auto;
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.bar nav a {
+  color: var(--fg-muted);
+  text-decoration: none;
+  padding-bottom: 2px;
+  border-bottom: 1.5px solid transparent;
+}
+.bar nav a:hover { color: var(--fg); }
+.bar nav a[aria-current="page"] {
+  color: var(--fg);
+  border-bottom-color: var(--accent);
+}
+
+.theme-toggle {
+  display: grid;
+  place-items: center;
+  width: 2rem; height: 2rem;
+  padding: 0;
+  color: var(--fg-muted);
+  background: none;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.theme-toggle:hover { color: var(--fg); border-color: var(--rule-firm); }
+/* Show whichever glyph represents the theme you would switch *to*. */
+.theme-toggle .moon { display: none; }
+.theme-toggle .sun  { display: inline; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-toggle .moon { display: inline; }
+  :root:not([data-theme="light"]) .theme-toggle .sun  { display: none; }
+}
+:root[data-theme="dark"] .theme-toggle .moon { display: inline; }
+:root[data-theme="dark"] .theme-toggle .sun  { display: none; }
+
+main {
+  max-width: calc(var(--measure) + 12rem);
+  margin: 0 auto;
+  padding: 2.6rem var(--gutter) 4rem;
+}
+
+.site-footer {
+  border-top: 1px solid var(--rule);
+  color: var(--fg-faint);
+  font-family: var(--sans);
+  font-size: 0.8rem;
+}
+.site-footer p {
+  max-width: calc(var(--measure) + 12rem);
+  margin: 0 auto;
+  padding: 1.3rem var(--gutter);
+}
+.site-footer a { color: var(--fg-muted); }
+
+/* --- 5. Document body --------------------------------------------------- */
+
+.doc {
+  max-width: var(--measure);
+  /* Nudged left of centre so the wider main column leaves room for figures
+     and equations to breach the measure without looking accidental. */
+  margin: 0 auto;
+}
+
+.doc-head { margin-bottom: 2.1rem; }
+
+.doc-head h1 {
+  margin: 0;
+  font-size: 2.05rem;
+  line-height: 1.16;
+  font-weight: 700;
+  letter-spacing: -0.018em;
+  text-wrap: balance;
+}
+
+.doc-meta {
+  margin: 0.5rem 0 0;
+  color: var(--fg-faint);
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+}
+.doc-meta:empty { display: none; }
+
+/* Headings. LaTeXML emits the section number in a .ltx_tag span, which lets
+   us set the number apart from the title the way a journal would. */
+.doc h2, .doc h3, .doc h4, .doc h5 {
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.008em;
+  text-wrap: balance;
+}
+.doc h2 {
+  font-size: 1.42rem;
+  margin: 2.5rem 0 0.75rem;
+  padding-bottom: 0.32rem;
+  border-bottom: 1px solid var(--rule);
+}
+.doc h3 { font-size: 1.16rem; margin: 2rem 0 0.6rem; }
+.doc h4 { font-size: 1.02rem; margin: 1.7rem 0 0.5rem; }
+.doc h5 { font-size: 0.95rem; margin: 1.5rem 0 0.45rem; font-style: italic; }
+
+.doc h2 .ltx_tag, .doc h3 .ltx_tag, .doc h4 .ltx_tag {
+  color: var(--fg-faint);
+  font-variant-numeric: lining-nums tabular-nums;
+  margin-right: 0.5em;
+  font-weight: 400;
+}
+
+/* LaTeXML wraps each paragraph group in .ltx_para > .ltx_p */
+.ltx_para { margin: 0; }
+.ltx_p { margin: 0 0 1.05em; }
+.ltx_para:last-child .ltx_p:last-child { margin-bottom: 0; }
+
+/* Abstract */
+.ltx_abstract {
+  margin: 0 0 2rem;
+  padding: 1rem 1.15rem;
+  background: var(--bg-sunk);
+  border-left: 2px solid var(--rule-firm);
+  border-radius: 0 5px 5px 0;
+  font-size: 0.95rem;
+}
+.ltx_abstract h6, .ltx_abstract .ltx_title_abstract {
+  margin: 0 0 0.4rem;
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--fg-faint);
+}
+.ltx_abstract p:last-child, .ltx_abstract .ltx_p:last-child {
+  margin-bottom: 0;
+}
+
+/* Lists */
+.doc ul, .doc ol { margin: 0 0 1.05em; padding-left: 1.5em; }
+.doc li { margin-bottom: 0.32em; }
+.doc li > .ltx_para > .ltx_p { margin-bottom: 0.4em; }
+
+/* LaTeXML renders enumerate markers into a .ltx_tag rather than using the
+   list marker, so suppress the native one where a tag is present. */
+.ltx_itemize, .ltx_enumerate, .ltx_description { list-style: none; padding-left: 0; }
+.ltx_itemize > .ltx_item, .ltx_enumerate > .ltx_item,
+.ltx_description > .ltx_item {
+  position: relative;
+  padding-left: 1.6em;
+}
+.ltx_item > .ltx_tag {
+  position: absolute;
+  left: 0;
+  color: var(--fg-muted);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.ltx_description > .ltx_item > .ltx_tag {
+  position: static;
+  font-weight: 700;
+  margin-right: 0.4em;
+  color: var(--fg);
+}
+.ltx_description > .ltx_item { padding-left: 0; }
+
+/* Cross-references */
+.ltx_ref { text-decoration: none; }
+.ltx_ref:hover { text-decoration: underline; }
+.ltx_ref_self { color: inherit; font-weight: 700; }
+
+/* Tables */
+.ltx_tabular, .doc table {
+  border-collapse: collapse;
+  margin: 1.4rem auto;
+  font-size: 0.94rem;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.ltx_tabular td, .ltx_tabular th, .doc table td, .doc table th {
+  padding: 0.4em 0.75em;
+  text-align: left;
+}
+.ltx_tabular th, .doc table th { font-weight: 700; }
+.ltx_border_t   { border-top: 1px solid var(--rule-firm); }
+.ltx_border_b   { border-bottom: 1px solid var(--rule-firm); }
+.ltx_border_tt  { border-top: 2px solid var(--fg); }
+.ltx_border_bb  { border-bottom: 2px solid var(--fg); }
+.ltx_border_r   { border-right: 1px solid var(--rule); }
+.ltx_border_l   { border-left: 1px solid var(--rule); }
+.ltx_align_center { text-align: center; }
+.ltx_align_right  { text-align: right; }
+.ltx_align_left   { text-align: left; }
+
+/* Anything that can exceed the measure gets its own scroll context, so the
+   page body itself never scrolls sideways. */
+.ltx_table, .ltx_tabular_wrap, .doc .table-wrap { overflow-x: auto; }
+
+/* --- 6. Math ------------------------------------------------------------ */
+
+math {
+  font-family: "STIX Two Math", math;
+  font-size: 1.04em;   /* MathML tends to set a touch small beside serif text */
+}
+
+/* Display equations: centre them, let them scroll if they are genuinely too
+   wide, and keep the equation number pinned right the way LaTeX does. */
+.ltx_equation, .ltx_equationgroup {
+  margin: 1.35rem 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+.ltx_eqn_table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0;
+}
+.ltx_eqn_table td { padding: 0.15rem 0; border: 0; }
+.ltx_eqn_cell { text-align: center; }
+.ltx_eqn_eqno {
+  text-align: right;
+  white-space: nowrap;
+  color: var(--fg-muted);
+  font-variant-numeric: lining-nums tabular-nums;
+  padding-left: 1rem;
+  width: 1%;
+}
+.ltx_eqn_lefteqno { text-align: left; padding: 0 1rem 0 0; }
+
+math[display="block"] {
+  display: block;
+  margin: 0 auto;
+  text-align: center;
+}
+
+/* Inline math should not stretch the line box. */
+math[display="inline"] { line-height: 1; }
+
+/* --- 7. Figures --------------------------------------------------------- */
+
+.ltx_figure, .ltx_float {
+  margin: 1.8rem 0;
+  text-align: center;
+}
+
+.ghb-figure {
+  display: block;
+  text-align: center;
+  margin: 0 auto;
+  /* Diagrams may exceed the text measure; allow it, but never the viewport. */
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* The build converts pure black in the SVG to currentColor, so a diagram
+   picks up the page's text colour and works in both themes without a second
+   asset. Width comes from an inline style in em, set at build time from the
+   figure's TeX dimensions. */
+.ghb-tikz {
+  color: var(--fg);
+  height: auto;
+  max-width: 100%;
+  vertical-align: middle;
+}
+
+.ltx_caption, .ltx_figure figcaption, .ltx_table figcaption {
+  margin: 0.7rem auto 0;
+  max-width: 30rem;
+  color: var(--fg-muted);
+  font-size: 0.87rem;
+  line-height: 1.5;
+  text-align: center;
+}
+.ltx_caption .ltx_tag {
+  font-weight: 700;
+  color: var(--fg);
+}
+
+.doc img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* --- 8. Theorems and proofs --------------------------------------------- */
+
+.ltx_theorem {
+  margin: 1.5rem 0;
+  padding: 0.15rem 0 0.15rem 1.05rem;
+  border-left: 2px solid var(--rule-firm);
+}
+
+.ltx_theorem .ltx_title_theorem,
+.ltx_theorem h6 {
+  margin: 0 0 0.35em;
+  font-size: 1rem;
+  font-weight: 700;
+  font-style: normal;
+  font-variant-caps: small-caps;
+  letter-spacing: 0.03em;
+}
+.ltx_theorem .ltx_title_theorem .ltx_tag {
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+/* Plain-style results are set in italic, as in most journals. Definitions and
+   remarks stay upright so they read as prose. */
+.ltx_theorem_theorem, .ltx_theorem_lemma, .ltx_theorem_proposition,
+.ltx_theorem_corollary, .ltx_theorem_claim, .ltx_theorem_conjecture {
+  font-style: italic;
+}
+.ltx_theorem_theorem .ltx_title_theorem,
+.ltx_theorem_lemma .ltx_title_theorem,
+.ltx_theorem_proposition .ltx_title_theorem,
+.ltx_theorem_corollary .ltx_title_theorem,
+.ltx_theorem_claim .ltx_title_theorem,
+.ltx_theorem_conjecture .ltx_title_theorem { font-style: normal; }
+
+/* Italic body text should not drag the math into italic too. */
+.ltx_theorem math { font-style: normal; }
+
+.ltx_theorem_definition, .ltx_theorem_example, .ltx_theorem_remark,
+.ltx_theorem_note, .ltx_theorem_problem { font-style: normal; }
+
+.ltx_proof {
+  margin: 1.4rem 0;
+  padding-left: 0;
+  border: 0;
+}
+.ltx_proof .ltx_title_proof, .ltx_proof h6 {
+  display: inline;
+  margin: 0 0.5em 0 0;
+  font-size: 1rem;
+  font-weight: 400;
+  font-style: italic;
+}
+/* Keep the QED box tight against the last line rather than on its own row. */
+.ltx_proof .ltx_para:first-of-type,
+.ltx_proof .ltx_p:first-of-type { display: inline; }
+.ltx_proof .ltx_p:first-of-type::before { content: ""; }
+
+/* --- 9. Bibliography and footnotes -------------------------------------- */
+
+.ltx_bibliography {
+  margin-top: 2.6rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--rule);
+  font-size: 0.92rem;
+}
+.ltx_bibliography h2, .ltx_title_bibliography {
+  font-size: 1.15rem;
+  border: 0;
+  margin: 0 0 0.9rem;
+  padding: 0;
+}
+.ltx_bibitem {
+  display: grid;
+  grid-template-columns: 2.6rem 1fr;
+  gap: 0.5rem;
+  margin-bottom: 0.7rem;
+  line-height: 1.5;
+}
+.ltx_bibitem .ltx_tag_bibitem {
+  color: var(--fg-faint);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.ltx_cite { white-space: nowrap; }
+.ltx_cite a, .ltx_ref.ltx_href { text-decoration: none; }
+
+/* Footnotes: LaTeXML inlines them as a hoverable mark plus content. Show them
+   as a superscript marker with the note revealed underneath on small screens
+   rather than a tooltip that touch users cannot reach. */
+.ltx_note {
+  position: relative;
+  display: inline;
+}
+.ltx_note_mark {
+  vertical-align: super;
+  font-size: 0.72em;
+  color: var(--accent);
+  font-variant-numeric: lining-nums;
+}
+.ltx_note_content {
+  display: none;
+  position: absolute;
+  left: 0; top: 1.5em;
+  z-index: 5;
+  width: min(24rem, 80vw);
+  padding: 0.6rem 0.8rem;
+  background: var(--bg);
+  border: 1px solid var(--rule-firm);
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+  font-size: 0.85rem;
+  font-style: normal;
+  line-height: 1.45;
+  text-align: left;
+}
+.ltx_note:hover .ltx_note_content,
+.ltx_note:focus-within .ltx_note_content { display: block; }
+
+/* --- 10. Posts index ---------------------------------------------------- */
+
+.post-list { list-style: none; margin: 0; padding: 0; }
+
+.post-item {
+  padding: 1.05rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+.post-item:first-child { padding-top: 0.2rem; }
+.post-item:last-child { border-bottom: 0; }
+
+.post-link {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  text-decoration: none;
+  color: inherit;
+}
+.post-link time {
+  order: -1;
+  color: var(--fg-faint);
+  font-family: var(--sans);
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.post-title {
+  font-size: 1.16rem;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+  text-wrap: balance;
+}
+.post-link:hover .post-title {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
+}
+.post-summary {
+  margin: 0.35rem 0 0;
+  color: var(--fg-muted);
+  font-size: 0.94rem;
+  line-height: 1.55;
+}
+.empty { color: var(--fg-faint); font-style: italic; }
+
+/* --- 11. Responsive and print ------------------------------------------- */
+
+@media (max-width: 42rem) {
+  html { font-size: 108%; }
+  main { padding-top: 1.9rem; }
+  .doc-head h1 { font-size: 1.66rem; }
+  .bar { flex-wrap: wrap; gap: 0.7rem 1rem; }
+  .bar nav { font-size: 0.74rem; gap: 0.9rem; }
+  .ltx_bibitem { grid-template-columns: 2rem 1fr; }
+  /* A tooltip is unusable on touch; show footnotes in flow instead. */
+  .ltx_note_content {
+    display: block;
+    position: static;
+    width: auto;
+    margin: 0.5rem 0;
+    box-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+@media print {
+  :root { --bg: #fff; --fg: #000; --fg-muted: #333; --rule: #ccc; }
+  .site-header, .site-footer, .theme-toggle, .skip { display: none; }
+  main { padding: 0; max-width: none; }
+  .doc { max-width: none; }
+  a { color: #000; text-decoration: underline; }
+  .ltx_note_content { display: block; position: static; border: 0; padding: 0; }
+  h2, h3, h4 { break-after: avoid; }
+  .ltx_theorem, .ghb-figure, .ltx_equation { break-inside: avoid; }
+}
