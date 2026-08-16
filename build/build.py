@@ -296,7 +296,10 @@ def convert(page: Page, rewritten: str, figures: dict, verbose=False) -> str:
              "--dest", str(td / "doc.xml"), str(td / "doc.tex")],
             cwd=td, env=env, what=f"latexml on {page.src.name}")
 
-        cmd = ["latexmlpost", "--quiet", "--format=html5", "--mathml",
+        # Presentation MathML is the default for html5, so it needs no flag.
+        # --nodefaultresources stops LaTeXML copying its own CSS/JS next to
+        # the output; the site template supplies all of that.
+        cmd = ["latexmlpost", "--quiet", "--format=html5",
                "--nodefaultresources", "--novalidate",
                "--dest", str(td / "doc.html")]
         for bib in td.glob("*.bib"):
@@ -360,10 +363,21 @@ def namespace_svg_ids(svg: str, prefix: str) -> str:
     return svg
 
 
+# LaTeXML represents a graphic as <img> for raster formats but as <object>
+# for SVG, so both spellings have to be recognised.
+FIGREF_RE = re.compile(
+    r"""<img\b[^>]*\bsrc=['"](?:\./)?ghbfig-(?P<imgsig>[0-9a-f]+)\.svg['"][^>]*/?>"""
+    r"""|"""
+    r"""<object\b[^>]*\bdata=['"](?:\./)?ghbfig-(?P<objsig>[0-9a-f]+)\.svg['"]"""
+    r"""[^>]*>\s*</object>""",
+    re.IGNORECASE,
+)
+
+
 def inline_figures(body: str, figures: dict) -> str:
-    """Swap each <img src="ghbfig-XXXX.svg"> for the SVG itself."""
+    """Swap each figure reference for the SVG itself."""
     def sub(m):
-        sig = m.group("sig")
+        sig = m.group("imgsig") or m.group("objsig")
         svg = read(figures[sig])
         # Strip the XML prolog and any doctype; they are invalid inline.
         svg = re.sub(r"<\?xml[^>]*\?>\s*", "", svg)
@@ -385,10 +399,7 @@ def inline_figures(body: str, figures: dict) -> str:
             f'style="{style}" ', 1)
         return f'<span class="ghb-figure">{svg}</span>'
 
-    pattern = re.compile(
-        r'<img\b[^>]*\bsrc=[\'"](?:\./)?ghbfig-(?P<sig>[0-9a-f]+)\.svg[\'"][^>]*/?>'
-    )
-    body = pattern.sub(sub, body)
+    body = FIGREF_RE.sub(sub, body)
 
     # LaTeXML sometimes keeps the graphic as an <object> or a bare reference
     # when it cannot measure it; catch that spelling too.
@@ -402,17 +413,29 @@ def inline_figures(body: str, figures: dict) -> str:
     return body
 
 
-def demote_headings(body: str) -> str:
-    """LaTeXML makes \\section an <h1>; the page title already occupies that.
+def normalize_headings(body: str) -> str:
+    """Make the heading outline valid.
 
-    Shifting sections down one level keeps a single h1 per page, which is what
-    screen readers and search engines expect.
+    LaTeXML emits an <h1> for the document title and <h2> for sections, so the
+    section levels are already right once the title is removed -- the template
+    renders that itself. What needs fixing is the <h6> it uses for run-in
+    labels: jumping h2 -> h6 for every theorem is a malformed outline.
+
+    Theorem and proof labels become spans, since they are run-in labels rather
+    than document structure. The abstract's label becomes an h2, because that
+    one really is a region heading.
     """
-    # Drop LaTeXML's own title block: the template renders the title itself.
     body = re.sub(r'<h1 class="ltx_title ltx_title_document".*?</h1>\s*', "",
                   body, flags=re.DOTALL)
-    for level in (5, 4, 3, 2, 1):
-        body = re.sub(rf"<(/?)h{level}\b", rf"<\g<1>h{level + 1}", body)
+
+    def retag(cls: str, tag: str, text: str) -> str:
+        return re.sub(
+            rf'<h6([^>]*\bclass="[^"]*{cls}[^"]*"[^>]*)>(.*?)</h6>',
+            rf"<{tag}\1>\2</{tag}>", text, flags=re.DOTALL)
+
+    body = retag("ltx_title_theorem", "span", body)
+    body = retag("ltx_title_proof", "span", body)
+    body = retag("ltx_title_abstract", "h2", body)
     return body
 
 
@@ -529,7 +552,7 @@ def build(verbose=False) -> int:
         if figures:
             print(f"      {len(figures)} figure(s)")
         raw = convert(p, rewritten, figures, verbose)
-        body = demote_headings(inline_figures(slice_body(raw), figures))
+        body = normalize_headings(inline_figures(slice_body(raw), figures))
         write_page(p, body)
 
     posts = sorted([p for p in live if p.kind == "post"],

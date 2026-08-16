@@ -346,8 +346,12 @@ main {
   border-radius: 0 5px 5px 0;
   font-size: 0.95rem;
 }
+/* Kept as a real heading for the outline, but set as a small label. The
+   border reset is needed because it is an h2 and .doc h2 draws a rule. */
 .ltx_abstract h6, .ltx_abstract .ltx_title_abstract {
   margin: 0 0 0.4rem;
+  padding: 0;
+  border: 0;
   font-family: var(--sans);
   font-size: 0.72rem;
   font-weight: 700;
@@ -510,18 +514,30 @@ math[display="inline"] { line-height: 1; }
   border-left: 2px solid var(--rule-firm);
 }
 
-.ltx_theorem .ltx_title_theorem,
-.ltx_theorem h6 {
-  margin: 0 0 0.35em;
+/* Run-in heads: "Theorem 2.1. The statement begins on the same line."
+   LaTeXML emits the label and the first paragraph as siblings, so both are
+   made inline and later paragraphs fall back to blocks on their own. */
+.ltx_theorem > .ltx_title_theorem,
+.ltx_proof > .ltx_title_proof {
+  display: inline;
+  margin: 0 0.45em 0 0;
   font-size: 1rem;
   font-weight: 700;
   font-style: normal;
   font-variant-caps: small-caps;
   letter-spacing: 0.03em;
 }
+.ltx_theorem > .ltx_title_theorem + .ltx_para,
+.ltx_proof > .ltx_title_proof + .ltx_para { display: inline; }
+.ltx_theorem > .ltx_title_theorem + .ltx_para > .ltx_p:first-child,
+.ltx_proof > .ltx_title_proof + .ltx_para > .ltx_p:first-child {
+  display: inline;
+}
+/* LaTeXML bolds the tag itself; small-caps on top of bold is too heavy. */
 .ltx_theorem .ltx_title_theorem .ltx_tag {
   font-variant-numeric: lining-nums tabular-nums;
 }
+.ltx_theorem .ltx_title_theorem .ltx_font_bold { font-weight: 700; }
 
 /* Plain-style results are set in italic, as in most journals. Definitions and
    remarks stay upright so they read as prose. */
@@ -547,17 +563,13 @@ math[display="inline"] { line-height: 1; }
   padding-left: 0;
   border: 0;
 }
-.ltx_proof .ltx_title_proof, .ltx_proof h6 {
-  display: inline;
-  margin: 0 0.5em 0 0;
-  font-size: 1rem;
+/* The proof label is italic and not small-caps, unlike a theorem head. */
+.ltx_proof > .ltx_title_proof {
   font-weight: 400;
   font-style: italic;
+  font-variant-caps: normal;
+  letter-spacing: 0;
 }
-/* Keep the QED box tight against the last line rather than on its own row. */
-.ltx_proof .ltx_para:first-of-type,
-.ltx_proof .ltx_p:first-of-type { display: inline; }
-.ltx_proof .ltx_p:first-of-type::before { content: ""; }
 
 /* --- 9. Bibliography and footnotes -------------------------------------- */
 
