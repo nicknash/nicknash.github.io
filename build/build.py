@@ -57,7 +57,7 @@ SITE = {
 
 # Nav order is explicit rather than derived, so adding a post never silently
 # rearranges the header.
-NAV = [("/", "Home"), ("/posts/", "Posts"), ("/about/", "About")]
+NAV = [("/", "Home"), ("/posts/", "Posts")]
 
 
 # ---------------------------------------------------------------------------
@@ -314,6 +314,27 @@ def convert(page: Page, rewritten: str, figures: dict, verbose=False) -> str:
 # Stage 3: post-processing
 # ---------------------------------------------------------------------------
 
+def div_span(doc: str, start: int) -> int:
+    """Index just past the </div> matching the <div> opened at `start`.
+
+    Counting depth is the only reliable way to find a partner tag without a
+    real parser, and LaTeXML nests divs freely.
+    """
+    i, depth = start, 1
+    tag = re.compile(r"<(/?)div\b", re.IGNORECASE)
+    while depth and (t := tag.search(doc, i)):
+        depth += -1 if t.group(1) else 1
+        i = t.end()
+    return doc.find(">", i) + 1 if depth == 0 else len(doc)
+
+
+def drop_div(body: str, cls: str) -> str:
+    """Remove every <div class="...cls..."> block, contents included."""
+    while (m := re.search(rf'<div[^>]*\bclass="[^"]*\b{cls}\b[^"]*"[^>]*>', body)):
+        body = body[:m.start()] + body[div_span(body, m.end()):]
+    return body
+
+
 def slice_body(doc: str) -> str:
     """Pull the article content out of LaTeXML's full-page wrapper.
 
@@ -425,8 +446,12 @@ def normalize_headings(body: str) -> str:
     than document structure. The abstract's label becomes an h2, because that
     one really is a region heading.
     """
+    # The template renders the title, date and byline itself, so LaTeXML's
+    # own title block is redundant -- left in, the date shows up twice.
     body = re.sub(r'<h1 class="ltx_title ltx_title_document".*?</h1>\s*', "",
                   body, flags=re.DOTALL)
+    for cls in ("ltx_dates", "ltx_authors", "ltx_creator"):
+        body = drop_div(body, cls)
 
     def retag(cls: str, tag: str, text: str) -> str:
         return re.sub(
@@ -536,12 +561,12 @@ def discover() -> list[Page]:
     return pages
 
 
-def build(verbose=False) -> int:
+def build(verbose=False, drafts=False) -> int:
     if not CONTENT.exists():
         raise BuildError(f"no content directory at {CONTENT}")
 
     pages = [load_metadata(p) for p in discover()]
-    live = [p for p in pages if not p.draft]
+    live = pages if drafts else [p for p in pages if not p.draft]
     skipped = len(pages) - len(live)
 
     OUT.mkdir(parents=True, exist_ok=True)
@@ -585,6 +610,8 @@ def main():
                     help="delete _site/ and the figure cache first")
     ap.add_argument("--serve", action="store_true",
                     help="serve _site/ on localhost:8000 after building")
+    ap.add_argument("--drafts", action="store_true",
+                    help="include \\draft pages, for checking them locally")
     ap.add_argument("-v", "--verbose", action="store_true")
     args = ap.parse_args()
 
@@ -594,7 +621,7 @@ def main():
         print("cleaned")
 
     try:
-        rc = build(args.verbose)
+        rc = build(args.verbose, args.drafts)
     except BuildError as e:
         print(f"\nerror: {e}", file=sys.stderr)
         return 1

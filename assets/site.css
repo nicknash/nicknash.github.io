@@ -280,11 +280,14 @@ main {
 
 /* --- 5. Document body --------------------------------------------------- */
 
+/* Left-aligned within the wider main column rather than centred in it, so the
+   text shares a left edge with the brand and the footer. Centring it here
+   insets the column ~6rem from both and reads as a misalignment. The spare
+   width on the right is deliberate: figures and equations can breach the
+   measure into it. */
 .doc {
   max-width: var(--measure);
-  /* Nudged left of centre so the wider main column leaves room for figures
-     and equations to breach the measure without looking accidental. */
-  margin: 0 auto;
+  margin: 0 auto 0 0;
 }
 
 .doc-head { margin-bottom: 2.1rem; }
@@ -370,7 +373,12 @@ main {
 
 /* LaTeXML renders enumerate markers into a .ltx_tag rather than using the
    list marker, so suppress the native one where a tag is present. */
-.ltx_itemize, .ltx_enumerate, .ltx_description { list-style: none; padding-left: 0; }
+/* Scoped under .doc so these beat the generic `.doc ul` padding above --
+   without the extra specificity the reset loses and lists indent twice. */
+.doc .ltx_itemize, .doc .ltx_enumerate, .doc .ltx_description {
+  list-style: none;
+  padding-left: 0;
+}
 .ltx_itemize > .ltx_item, .ltx_enumerate > .ltx_item,
 .ltx_description > .ltx_item {
   position: relative;
@@ -585,16 +593,34 @@ math[display="inline"] { line-height: 1; }
   margin: 0 0 0.9rem;
   padding: 0;
 }
+.doc .ltx_biblist { list-style: none; margin: 0; padding: 0; }
+
+/* LaTeXML splits one reference across several .ltx_bibblock spans (authors,
+   title, journal, back-references). They must stay inline so the entry reads
+   as a single hanging-indent paragraph -- laying the <li> out as a grid turns
+   every block into a cell and wraps the title one word per line. */
 .ltx_bibitem {
-  display: grid;
-  grid-template-columns: 2.6rem 1fr;
-  gap: 0.5rem;
+  position: relative;
   margin-bottom: 0.7rem;
+  padding-left: 2.7rem;
   line-height: 1.5;
 }
-.ltx_bibitem .ltx_tag_bibitem {
+.ltx_bibitem > .ltx_tag_bibitem {
+  position: absolute;
+  left: 0;
+  top: 0;
   color: var(--fg-faint);
   font-variant-numeric: lining-nums tabular-nums;
+}
+.ltx_bibitem .ltx_bibblock {
+  display: inline;
+  margin-right: 0.28em;
+}
+.ltx_bib_title { font-style: italic; }
+/* Back-references are useful but secondary; keep them out of the way. */
+.ltx_bibitem .ltx_bib_cited {
+  color: var(--fg-faint);
+  font-size: 0.88em;
 }
 .ltx_cite { white-space: nowrap; }
 .ltx_cite a, .ltx_ref.ltx_href { text-decoration: none; }

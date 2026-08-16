@@ -25,8 +25,15 @@ Add a `.tex` file under `content/posts/`, named `YYYY-MM-DD-slug.tex`:
 That's the whole publishing step — the posts index is generated from whatever
 is in `content/posts/`, sorted by date. Push to `main` and it deploys.
 
-Pages that aren't posts (like `about.tex`) go directly in `content/`.
-`content/index.tex` is the home page.
+Pages that aren't posts go directly in `content/` and get their own URL from
+the filename — `content/about.tex` would serve at `/about/`. Add them to `NAV`
+in `build/build.py` to put them in the header. `content/index.tex` is the home
+page.
+
+`content/posts/2026-08-16-example.tex` is a worked example covering theorems, a
+TikZ figure, numbered equations, cross-references and a bibliography. It is
+marked `\draft` so it never publishes; view it with `make drafts` or delete it
+once it has served its purpose.
 
 ### Metadata
 
@@ -60,6 +67,7 @@ stay fixed, so avoid those for anything load-bearing on a dark background.
 ```
 make deps     # one-time: TeX Live, LaTeXML, dvisvgm
 make serve    # build and serve on localhost:8000
+make drafts   # same, but including \draft pages
 make build    # build into _site/
 make clean    # drop _site/ and the figure cache
 ```

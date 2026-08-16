@@ -1,8 +1,9 @@
-.PHONY: build serve clean fonts deps pdf help
+.PHONY: build serve drafts clean fonts deps pdf help
 
 help:
 	@echo "make build   - build the site into _site/"
 	@echo "make serve   - build, then serve on http://localhost:8000"
+	@echo "make drafts  - as serve, but including \\draft pages"
 	@echo "make clean   - remove _site/ and the figure cache"
 	@echo "make fonts   - regenerate assets/fonts from TeX Live's STIX Two"
 	@echo "make deps    - install the system packages the build needs"
@@ -13,6 +14,9 @@ build:
 
 serve:
 	python3 build/build.py --serve
+
+drafts:
+	python3 build/build.py --drafts --serve
 
 clean:
 	python3 build/build.py --clean --help >/dev/null 2>&1 || true

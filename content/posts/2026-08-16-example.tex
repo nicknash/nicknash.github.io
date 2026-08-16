@@ -1,5 +1,16 @@
+% ---------------------------------------------------------------------------
+% Not published: \draft keeps this out of the posts index and the sitemap, and
+% the build skips it entirely. It is here as a worked reference for the
+% features the pipeline supports -- theorems, a TikZ figure, numbered
+% equations, cross-references and a bibliography.
+%
+% To look at it:  python3 build/build.py --drafts --serve
+% To delete it:   rm content/posts/2026-08-16-example.tex content/posts/refs.bib
+% ---------------------------------------------------------------------------
 \documentclass[11pt]{article}
 \usepackage{ghb}
+
+\draft
 
 \title{Counting triangles by degeneracy ordering}
 \date{2026-08-16}

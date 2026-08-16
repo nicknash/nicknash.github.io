@@ -20,9 +20,18 @@
 \DeclareMathOperator{\poly}{poly}
 \DeclareMathOperator{\OPT}{OPT}
 
-\newcommand{\bigO}[1]{O\!\left(#1\right)}
-\newcommand{\set}[1]{\left\{#1\right\}}
-\newcommand{\abs}[1]{\left\lvert#1\right\rvert}
-\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+% Fixed-size parentheses, deliberately not \left(...\right). Browsers stretch
+% \left delimiters to clear a superscript much harder than TeX does, so
+% \bigO{n^3} came out with oversized brackets. Plain parens match the text.
+\newcommand{\bigO}[1]{O(#1)}
+
+% These keep \left...\right because their contents are often tall (fractions,
+% sums) and genuinely need to stretch. Use \setbig etc. only when they do.
+\newcommand{\set}[1]{\{#1\}}
+\newcommand{\setbig}[1]{\left\{#1\right\}}
+\newcommand{\abs}[1]{\lvert#1\rvert}
+\newcommand{\absbig}[1]{\left\lvert#1\right\rvert}
+\newcommand{\norm}[1]{\lVert#1\rVert}
+\newcommand{\normbig}[1]{\left\lVert#1\right\rVert}
 
 \endinput
