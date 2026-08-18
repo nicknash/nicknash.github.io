@@ -21,3 +21,7 @@ _site/
 LaTeXML.cache
 
 .DS_Store
+
+# Python bytecode
+__pycache__/
+*.pyc

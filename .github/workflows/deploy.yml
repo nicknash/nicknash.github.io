@@ -1,8 +1,19 @@
 name: Build and deploy
 
+# Manual only, for now. The site is deliberately unpublished: the repository
+# is private, which is what takes a <user>.github.io Pages site offline --
+# GitHub refuses to deactivate Pages on a user site any other way.
+#
+# To go live again:
+#   1. make the repository public
+#        gh api -X PATCH repos/nicknash/nicknash.github.io -F private=false
+#   2. set Pages to build from Actions
+#        gh api -X PUT repos/nicknash/nicknash.github.io/pages -f build_type=workflow
+#   3. restore the push trigger below, or run the workflow by hand
+#        gh workflow run deploy.yml
 on:
-  push:
-    branches: [main]
+  # push:
+  #   branches: [main]
   workflow_dispatch:
 
 # Allow one deploy at a time, but let a newer push supersede a queued one.

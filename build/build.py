@@ -582,20 +582,29 @@ def discover() -> list[Page]:
     return pages
 
 
-def build(verbose=False, drafts=False) -> int:
+def build(verbose=False, drafts=False, only=None, quiet=False) -> int:
+    """Build the site.
+
+    `only` restricts the expensive LaTeXML conversion to a set of source
+    paths, for the watch server. Metadata is still read for every page --
+    that is just a regex over the source -- so the posts index and sitemap
+    stay correct even when a single page is rebuilt.
+    """
     if not CONTENT.exists():
         raise BuildError(f"no content directory at {CONTENT}")
 
     pages = [load_metadata(p) for p in discover()]
     live = pages if drafts else [p for p in pages if not p.draft]
     skipped = len(pages) - len(live)
+    targets = live if only is None else [p for p in live if p.src in only]
 
     OUT.mkdir(parents=True, exist_ok=True)
-    for p in live:
-        print(f"  {p.src.relative_to(ROOT)}")
+    for p in targets:
+        if not quiet:
+            print(f"  {p.src.relative_to(ROOT)}")
         src = read(p.src)
         rewritten, figures = extract_figures(src, verbose)
-        if figures:
+        if figures and not quiet:
             print(f"      {len(figures)} figure(s)")
         raw = convert(p, rewritten, figures, verbose)
         body = normalize_headings(inline_figures(slice_body(raw), figures))
@@ -605,13 +614,20 @@ def build(verbose=False, drafts=False) -> int:
                    key=lambda p: p.date, reverse=True)
     build_posts_index(posts)
 
-    shutil.copytree(ASSETS, OUT / "assets", dirs_exist_ok=True)
+    sync_assets()
     (OUT / ".nojekyll").write_text("")   # stop Pages running Jekyll over it
     write_sitemap(live)
 
-    print(f"\n  {len(live)} page(s), {len(posts)} post(s)"
-          + (f", {skipped} draft(s) skipped" if skipped else ""))
-    return 0
+    if not quiet:
+        print(f"\n  {len(live)} page(s), {len(posts)} post(s)"
+              + (f", {skipped} draft(s) skipped" if skipped else ""))
+    return len(targets)
+
+
+def sync_assets():
+    """Copy assets/ into the output. Cheap enough to redo on every build."""
+    OUT.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(ASSETS, OUT / "assets", dirs_exist_ok=True)
 
 
 def write_sitemap(pages: list[Page]):

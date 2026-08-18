@@ -66,11 +66,34 @@ stay fixed, so avoid those for anything load-bearing on a dark background.
 
 ```
 make deps     # one-time: TeX Live, LaTeXML, dvisvgm
-make serve    # build and serve on localhost:8000
-make drafts   # same, but including \draft pages
+make dev      # live preview: rebuilds and reloads as you edit  <- use this
 make build    # build into _site/
+make serve    # build and serve once, no watching
+make drafts   # as serve, including \draft pages
 make clean    # drop _site/ and the figure cache
 ```
+
+`make dev` is the one to leave running while writing. It serves
+<http://localhost:8000>, watches the sources, and reloads the browser on
+change. Drafts are included so you can see a `\draft` post as you write it.
+
+It rebuilds only what your edit affects, because LaTeXML is the slow part:
+editing one `.tex` takes about 1.5s, where a full rebuild is closer to 15s.
+Editing a `.sty` or the template rebuilds everything, since a macro change can
+reach any page; editing CSS just copies the file and reloads, with no LaTeX at
+all.
+
+If a build fails the server keeps serving the last good version and shows the
+error as a banner in the page, so a stray `\begin` doesn't leave you looking
+at a blank screen.
+
+## Publishing status
+
+The site is currently **not published**. The repository is private, which is
+what takes a `<user>.github.io` site offline — GitHub does not allow
+deactivating Pages on a user site directly. The deploy workflow's `push`
+trigger is commented out to match. `.github/workflows/deploy.yml` carries the
+three commands needed to put it back online.
 
 Because the source is ordinary LaTeX, any page also compiles to a PDF, which
 is a quick way to check it before pushing:
