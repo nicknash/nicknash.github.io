@@ -128,19 +128,40 @@ def has_command(src: str, cmd: str) -> bool:
 
 
 def strip_tex(s: str) -> str:
-    r"""Reduce a short TeX fragment to plain text, for <title> and meta tags.
+    r"""Reduce a short TeX fragment to plain text, for the index and meta tags.
 
-    Deliberately crude: it only has to cope with titles and summaries, where
-    the realistic worst case is \emph{...} or an inline $x$.
+    Deliberately crude -- it only handles titles and summaries -- but it has to
+    keep the *text* of a two-argument macro while dropping the other argument.
+    The generic "delete any \command" pass at the end would otherwise turn
+    \href{https://...}{AI} into the bare URL and paste that into the posts
+    listing.
     """
     if s is None:
         return ""
-    s = re.sub(r"\\(?:emph|textit|textbf|texttt|textsc)\s*\{([^{}]*)\}", r"\1", s)
+
+    # Two-argument macros: keep the argument that is prose.
+    s = re.sub(r"\\href\s*\{[^{}]*\}\s*\{([^{}]*)\}", r"\1", s)
+    s = re.sub(r"\\footnote\s*\{[^{}]*\}", "", s)
+
+    # One-argument formatting macros: keep the content.
+    s = re.sub(r"\\(?:emph|textit|textbf|texttt|textsc|textsl|underline|url)"
+               r"\s*\{([^{}]*)\}", r"\1", s)
+
+    # Macros that stand for literal text.
+    for cmd, text in (("LaTeX", "LaTeX"), ("TeX", "TeX"), ("ldots", "...")):
+        s = re.sub(rf"\\{cmd}(?:\{{\}})?(?![a-zA-Z])", text, s)
+
     s = re.sub(r"\$([^$]*)\$", r"\1", s)
-    s = re.sub(r"\\[a-zA-Z]+\s*", "", s)
+    s = re.sub(r"\\[a-zA-Z]+\s*", "", s)     # drop anything left over
     s = s.replace("{", "").replace("}", "").replace("~", " ")
-    s = re.sub(r"\s+", " ", s)
-    return s.strip()
+    s = s.replace("\\&", "&").replace("\\%", "%").replace("\\_", "_")
+
+    # TeX punctuation conventions, which would otherwise show up literally.
+    s = s.replace("---", "\u2014").replace("--", "\u2013")
+    s = s.replace("``", "\u201c").replace("''", "\u201d")
+    s = s.replace("`", "\u2018").replace("'", "\u2019")
+
+    return re.sub(r"\s+", " ", s).strip()
 
 
 @dataclass

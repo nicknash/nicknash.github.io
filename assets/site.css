@@ -335,6 +335,24 @@ main {
   font-weight: 400;
 }
 
+/* Inline font switches. \emph becomes <em>, which the base rules cover, but
+   \textit, \textbf and friends become plain spans carrying only these
+   classes -- without rules here the markup renders inert. */
+.ltx_font_italic     { font-style: italic; }
+.ltx_font_bold       { font-weight: 700; }
+.ltx_font_upright    { font-style: normal; }
+.ltx_font_slanted    { font-style: oblique 10deg; }
+.ltx_font_smallcaps  { font-variant-caps: small-caps; }
+.ltx_font_serif      { font-family: var(--serif); }
+.ltx_font_sansserif  { font-family: var(--sans); }
+.ltx_font_typewriter { font-family: var(--mono); font-size: 0.88em; }
+/* Nested \textit inside an italic theorem body should read as a switch back,
+   which is what LaTeX does. */
+.ltx_theorem_theorem .ltx_font_italic,
+.ltx_theorem_lemma .ltx_font_italic,
+.ltx_theorem_proposition .ltx_font_italic,
+.ltx_theorem_corollary .ltx_font_italic { font-style: normal; }
+
 /* LaTeXML wraps each paragraph group in .ltx_para > .ltx_p */
 .ltx_para { margin: 0; }
 .ltx_p { margin: 0 0 1.05em; }
