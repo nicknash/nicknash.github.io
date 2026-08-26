@@ -1,0 +1,270 @@
+\documentclass[11pt]{article}
+\usepackage{ghb}
+
+% On the site these become semantic block quotations styled by site.css.  The
+% PDF gets a matching shaded panel rather than a plain indented quotation.
+\ifdefined\ghbHTML
+  \newenvironment{promptbox}{\begin{quote}}{\end{quote}}
+\else
+  \usepackage{tcolorbox}
+  \newtcolorbox{promptbox}{
+    colback=black!4,
+    colframe=black!20,
+    boxrule=0.4pt,
+    arc=2pt,
+    left=8pt,
+    right=8pt,
+    top=6pt,
+    bottom=6pt,
+    before skip=10pt,
+    after skip=10pt
+  }
+\fi
+
+\title{Intellectual Wastelands}
+\date{2026-08-16}
+
+% \summary is the posts-index blurb and the meta description only -- it is
+% plain text, so links and emphasis are stripped from it. Keep it short. The
+% abstract below is what readers see at the top of the page.
+\summary{In which ChatGPT one-shots my research paper}
+
+\begin{document}
+
+\begin{abstract}
+In Summer 2025, I looked for an easy graph algorithm to improve.
+After weeks of work, and long peer review, it ended up as a published \href{https://doi.org/10.7155/jgaa.v30i1.3137}{paper}.
+In Summer 2026, \href{https://chatgpt.com/share/6a8434d4-c278-83ed-aeb1-f2f0cd1bdb62}{AI}
+came up with all of the ideas in the paper in about two hours. I then considered
+automating this entire process: Find \textit{all} ``easy'' graph algorithms,
+and improve them with AI. At first this idea seemed cool, now I wonder, might I instead contribute to an
+\textit{intellectual wasteland}?
+\end{abstract}
+
+\section{Strange Recreations}
+
+In Summer 2025 I was looking for something to keep my brain ticking over. I also thought it would be nice if
+I would be able to publish the result of this tinkering in a peer-reviewed academic venue of some kind.
+
+Long ago in I had done a (very) small bit of \href{https://researchrepository.ul.ie/server/api/core/bitstreams/12fd8a39-ae57-4f47-8301-1f5e231e78fc/content}{work} on graph algorithms, and so I looked for an algorithm there.
+
+\section{There's Still Plenty of Room at the Bottom}
+
+I quickly discovered a candidate problem: \href{https://www.graphclasses.org/classes/problem_Weighted_feedback_vertex_set.html}{minimum feedback vertex set}, restricted to \href{https://www.graphclasses.org/classes/gc_132.html}{circle graphs}.
+
+Given one of the input graphs on the left, the problem asks for the largest set of nodes (dots) that can be chosen such that the resulting graph (which includes all the edges connected to those nodes) has no cycles.
+This way of describing the problem is referred to as finding a \textit{maximum induced forest}.
+
+\begin{figure}[ht]
+  \centering
+  \begin{tikzpicture}[
+    x=0.9cm,
+    y=0.9cm,
+    graph vertex/.style={circle,draw,inner sep=1.2pt,minimum size=6pt,
+                         fill=white,line width=0.8pt},
+    chosen vertex/.style={graph vertex,draw=green!60!black,
+                          fill=green!12},
+    muted vertex/.style={graph vertex,draw opacity=0.4},
+    graph edge/.style={line width=0.8pt,draw opacity=0.55},
+    forest edge/.style={line width=2pt,draw=green!60!black},
+    computation arrow/.style={-{Stealth[length=2.6mm,width=2mm]},
+                              line width=1pt,draw opacity=0.7}
+  ]
+    % Two disjoint triangles.
+    \begin{scope}
+      \node[graph vertex] (a) at (0,0) {};
+      \node[graph vertex] (b) at (1.1,0) {};
+      \node[graph vertex] (c) at (0.55,0.95) {};
+      \node[graph vertex] (d) at (3,0) {};
+      \node[graph vertex] (e) at (4.1,0) {};
+      \node[graph vertex] (f) at (3.55,0.95) {};
+      \draw[graph edge] (a)--(b)--(c)--(a);
+      \draw[graph edge] (d)--(e)--(f)--(d);
+    \end{scope}
+    \begin{scope}[xshift=6cm]
+      \node[chosen vertex] (a) at (0,0) {};
+      \node[chosen vertex] (b) at (1.1,0) {};
+      \node[muted vertex] (c) at (0.55,0.95) {};
+      \node[chosen vertex] (d) at (3,0) {};
+      \node[chosen vertex] (e) at (4.1,0) {};
+      \node[muted vertex] (f) at (3.55,0.95) {};
+      \draw[graph edge] (a)--(c)--(b)--(a);
+      \draw[graph edge] (d)--(f)--(e)--(d);
+      \draw[forest edge] (a)--(b);
+      \draw[forest edge] (d)--(e);
+    \end{scope}
+    \draw[computation arrow] (4.8,0.48)--(6,0.48);
+
+    % A square with a diagonal.
+    \begin{scope}[xshift=1.35cm,yshift=-2.6cm]
+      \node[graph vertex] (v1) at (0,0) {};
+      \node[graph vertex] (v2) at (1.4,0) {};
+      \node[graph vertex] (v3) at (1.4,1.2) {};
+      \node[graph vertex] (v4) at (0,1.2) {};
+      \draw[graph edge] (v1)--(v2)--(v3)--(v4)--(v1);
+      \draw[graph edge] (v1)--(v3);
+    \end{scope}
+    \begin{scope}[xshift=7.35cm,yshift=-2.6cm]
+      \node[chosen vertex] (v1) at (0,0) {};
+      \node[chosen vertex] (v2) at (1.4,0) {};
+      \node[muted vertex] (v3) at (1.4,1.2) {};
+      \node[chosen vertex] (v4) at (0,1.2) {};
+      \draw[graph edge] (v1)--(v2)--(v3)--(v4)--(v1);
+      \draw[graph edge] (v1)--(v3);
+      \draw[forest edge] (v2)--(v1)--(v4);
+    \end{scope}
+    \draw[computation arrow] (4.8,-2.29)--(6,-2.29);
+
+    % Three triangles sharing a hub.
+    \begin{scope}[xshift=2.05cm,yshift=-5.3cm]
+      \node[graph vertex] (h) at (0,0) {};
+      \node[graph vertex] (x1) at (1.5,0.2) {};
+      \node[graph vertex] (y1) at (1.2,1.1) {};
+      \node[graph vertex] (x2) at (-1.5,0.2) {};
+      \node[graph vertex] (y2) at (-1.2,1.1) {};
+      \node[graph vertex] (x3) at (0,-1.5) {};
+      \node[graph vertex] (y3) at (0.9,-1.1) {};
+      \draw[graph edge] (h)--(x1)--(y1)--(h);
+      \draw[graph edge] (h)--(x2)--(y2)--(h);
+      \draw[graph edge] (h)--(x3)--(y3)--(h);
+    \end{scope}
+    \begin{scope}[xshift=8.05cm,yshift=-5.3cm]
+      \node[muted vertex] (h) at (0,0) {};
+      \node[chosen vertex] (x1) at (1.5,0.2) {};
+      \node[chosen vertex] (y1) at (1.2,1.1) {};
+      \node[chosen vertex] (x2) at (-1.5,0.2) {};
+      \node[chosen vertex] (y2) at (-1.2,1.1) {};
+      \node[chosen vertex] (x3) at (0,-1.5) {};
+      \node[chosen vertex] (y3) at (0.9,-1.1) {};
+      \draw[graph edge] (h)--(x1)--(y1)--(h);
+      \draw[graph edge] (h)--(x2)--(y2)--(h);
+      \draw[graph edge] (h)--(x3)--(y3)--(h);
+      \draw[forest edge] (x1)--(y1);
+      \draw[forest edge] (x2)--(y2);
+      \draw[forest edge] (x3)--(y3);
+    \end{scope}
+    \draw[computation arrow] (4.8,-6.09)--(6,-6.09);
+  \end{tikzpicture}
+\end{figure}
+
+This problem had the advantage (for me), that there were really just two papers written about it, \href{https://doi.org/10.1016/j.ipl.2007.12.003}{one} about the problem itself, and another about a
+\href{https://doi.org/10.1142/S1793830911001243}{slight generalisation}.
+
+And so, after a couple of weeks of plodding through the existing work I was indeed able to improve the best known algorithm. My \href{https://doi.org/10.7155/jgaa.v30i1.3137}{new algorithm} takes $O(n^3 m)$ time, rather
+than the $O(n^7)$ time required by the best previously known algorithm.
+
+\section{My Very Own Datapoint}
+
+It is important to emphasize that the problem I chose has essentially nobody interested in it. If it did, it would long ago have been mined for all obvious improvements. It has no applications I'm aware of, either.
+That wasn't the point for me though - I was just using it to scrape away a little of the rust from my brain.
+
+With that said, it is still stunning that \href{https://chatgpt.com/share/6a8434d4-c278-83ed-aeb1-f2f0cd1bdb62}{ChatGPT 5.6 Sol came up with} exactly the algorithmic improvements that were published in my paper,
+and with nothing other than this prompt (with \href{https://doi.org/10.1016/j.ipl.2007.12.003}{Gavril's paper} attached):
+
+\begin{promptbox}
+Please try and improve the time and/or space complexity of Gavril's algorithm as much as possible, and describe how it can be done.
+\end{promptbox}
+
+Followed by this one:
+
+\begin{promptbox}
+See if you can get to subquintic time.
+\end{promptbox}
+
+It is often (I guess correctly) said that the frontier AI companies have over-fitted and maxed-out various public benchmarks. So this for me, is a nice personal data-point all of my own.
+I was as certain as anyone could be that this algorithm had never been published before.
+I also knew the level of effort I had put in to understand the existing algorithm for this problem and improve it.
+
+As a result, this outcome is a nice little ruler for me to measure just how good these models are.
+This is a genuinely new piece of knowledge the model has generated, and I know how hard it was at least for me, to come up with.
+
+\section{Worse Is Better}
+
+In fact, the previous section slightly \textit{understates} how good the AI solution was. There is a (sloppy) after-thought in \href{https://doi.org/10.7155/jgaa.v30i1.3137}{my paper} that describes an $O(n^{4.686})$ time
+algorithm. The AI actually came up with a slightly \textit{better} exponent here, of $O(n^{4.5428})$. Whoops!
+
+We might try and mount a defense of my human written paper. Sure, the exponent is worse. However:
+
+\begin{itemize}
+\item Firstly, the way the paper presents the algorithm is \textit{far simpler}, in my opinion, than the previous work.
+      Notably, the AI improvements still work in terms of this (to my eye) unnecessarily complicated view of things from previous work
+\item Secondly, the \href{https://chatgpt.com/share/6a8434d4-c278-83ed-aeb1-f2f0cd1bdb62}{AI's work} includes no proofs, just (very) plausible claims. It's not in a form suitable for people to refer to and build on in the literature.
+\end{itemize}
+
+Personally, I think both of these defenses fail. I'm pretty confident an AI model could radically improve the presentation, if simply asked to simplify it as much as possible.
+Secondly, the models are also capable of producing human-readable proofs, as well as proofs in \href{https://lean-lang.org/}{Lean} -- a much higher bar than my proofs.
+
+Also, somewhat ironically, I originally \textit{left all the proofs out} of the first version of my own paper, and only included them when reviewers asked.
+
+\section{Laying Waste}
+
+After this experience, I had the obvious idea. If AI can do the ``hard'' bit of coming up with new algorithms, why don't I just let it loose on \href{https://www.graphclasses.org}{graphclasses.org}?
+
+All I did was go there, pick a problem, and
+get to work. I can just ask an AI to do the same thing, iteratively, improving everything it is able to.
+
+\begin{figure}[ht]
+  \centering
+  \begin{tikzpicture}[scale=1.05,transform shape,
+    flow/.style={-{Stealth[length=2.5mm,width=1.8mm]},thick},
+    loop/.style={flow,dashed},
+    panel/.style={draw,thick,rounded corners=3pt,fill=black!3},
+    small label/.style={font=\footnotesize,align=center}
+  ]
+    % A small catalogue/browser card.
+    \node[panel,minimum width=3.4cm,minimum height=2.05cm] (catalogue) at (0,0) {};
+    \draw ($(catalogue.north west)+(0,-.48)$)--($(catalogue.north east)+(0,-.48)$);
+    \node[font=\footnotesize\bfseries] at ($(catalogue.north)+(0,-.25)$)
+      {graphclasses.org};
+    \foreach \y in {.28,-.18,-.64} {
+      \draw[thin] (-1.35,\y)--(-1.12,\y+.16)--(-.89,\y)--cycle;
+      \fill (-1.35,\y) circle (1.1pt);
+      \fill (-1.12,\y+.16) circle (1.1pt);
+      \fill (-.89,\y) circle (1.1pt);
+      \draw[thick] (-.65,\y+.09)--(.95,\y+.09);
+      \draw[thin] (-.65,\y-.08)--(.55,\y-.08);
+    }
+    \node[small label,below=2pt of catalogue]
+      {thanklessly maintained but very useful\\catalogue of graph problems};
+
+    % The proposed AI researcher.
+    \node[draw,very thick,circle,fill=black!3,minimum size=1.65cm,
+          font=\large\bfseries] (ai) at (4.25,0) {AI};
+    \foreach \a in {0,45,...,315}
+      \draw[thin] ($(ai.center)+(\a:.96)$)--($(ai.center)+(\a:1.08)$);
+
+    % A better bound/result card, with two sheets behind it.
+    \node[panel,minimum width=3.15cm,minimum height=1.38cm]
+      at (9.49,-.14) {};
+    \node[panel,minimum width=3.15cm,minimum height=1.38cm]
+      at (9.37,-.07) {};
+    \node[panel,minimum width=3.15cm,minimum height=1.38cm,align=center]
+      (result) at (9.25,0)
+      {\textbf{better algorithm}\\old bound $\longrightarrow$ new bound};
+
+    \draw[flow] (catalogue.east)--(ai.west)
+      node[midway,above,small label] {pick a\\problem};
+    \draw[flow] (ai.east)--(result.west)
+      node[midway,above,small label] {look for an\\improvement};
+
+    % The tempting loop, and the work that would still remain for each result.
+    \draw[loop,rounded corners=5pt]
+      (result.north)--++(0,1.18)
+      --node[midway,above,small label] {next problem}
+      ($(catalogue.north)+(0,1.18)$)--(catalogue.north);
+    \node[panel,dashed,minimum width=3.15cm,minimum height=.78cm,
+          align=center,font=\footnotesize] (publish) at (9.25,-2.05)
+	  {understand and publish (YAWN)};
+    \draw[flow,dashed] (result.south)--(publish.north)
+      node[midway,left,small label] {still required...\\but maybe don't bother?};
+  \end{tikzpicture}
+\end{figure}
+
+I didn't do this because I wasn't willing to properly write-up and publish all the results. Without writing the results up properly and publishing them, I felt a bit like I would be leaving an \textit{intellectual wasteland} behind me.
+
+I would have ``stolen'' all the little results someone else could work out or publish. Someone else might build useful new ideas motivated by improving some of these algorithms, and I might extinguish that motivation by blasting through the problems
+with an AI. Ironically, I might \textit{reduce} the generation of new ideas through this exercise.
+
+I also felt doing this would also sort of spam the computer science reviewing community with many correct but incremental results. On the other hand, it feels a bit inevitable this automation-of-discovery will happen, and I guess the academic communities are going to have
+to adapt somehow (so long as humans are still involved, I suppose).
+\end{document}

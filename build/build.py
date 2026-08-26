@@ -49,7 +49,7 @@ FIGCACHE = CACHE / "figures"
 TEX_PT_PER_EM = 10.0
 
 SITE = {
-    "title": "Nick",
+    "title": "Nick's Place",
     "url": "https://nicknash.github.io",
     "description": "Notes on graphs, algorithms and whatever else is holding "
                    "my attention.",
@@ -57,7 +57,7 @@ SITE = {
 
 # Nav order is explicit rather than derived, so adding a post never silently
 # rearranges the header.
-NAV = [("/", "Home"), ("/posts/", "Posts")]
+NAV = [("/posts/", "Posts")]
 
 
 # ---------------------------------------------------------------------------
@@ -658,7 +658,7 @@ def main():
         print("cleaned")
 
     try:
-        rc = build(args.verbose, args.drafts)
+        build(args.verbose, args.drafts)
     except BuildError as e:
         print(f"\nerror: {e}", file=sys.stderr)
         return 1
@@ -670,7 +670,7 @@ def main():
         with socketserver.TCPServer(("", 8000), handler) as httpd:
             print("serving http://localhost:8000  (ctrl-c to stop)")
             httpd.serve_forever()
-    return rc
+    return 0
 
 
 if __name__ == "__main__":

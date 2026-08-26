@@ -384,6 +384,22 @@ main {
   margin-bottom: 0;
 }
 
+/* Prompt excerpts and other display quotations.  A quiet panel separates
+   quoted input from the author's prose without making it look like code. */
+.doc .ltx_quote {
+  margin: 1.15rem 0;
+  padding: 0.8rem 1rem 0.85rem;
+  background: var(--bg-sunk);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  border-radius: 5px;
+  box-shadow: var(--shadow);
+  font-size: 0.96rem;
+  line-height: 1.55;
+  break-inside: avoid;
+}
+.doc .ltx_quote .ltx_p:last-child { margin-bottom: 0; }
+
 /* Lists */
 .doc ul, .doc ol { margin: 0 0 1.05em; padding-left: 1.5em; }
 .doc li { margin-bottom: 0.32em; }

@@ -30,11 +30,6 @@ the filename — `content/about.tex` would serve at `/about/`. Add them to `NAV`
 in `build/build.py` to put them in the header. `content/index.tex` is the home
 page.
 
-`content/posts/2026-08-16-example.tex` is a worked example covering theorems, a
-TikZ figure, numbered equations, cross-references and a bibliography. It is
-marked `\draft` so it never publishes; view it with `make drafts` or delete it
-once it has served its purpose.
-
 ### Metadata
 
 | Command | Effect |
@@ -89,11 +84,8 @@ at a blank screen.
 
 ## Publishing status
 
-The site is currently **not published**. The repository is private, which is
-what takes a `<user>.github.io` site offline — GitHub does not allow
-deactivating Pages on a user site directly. The deploy workflow's `push`
-trigger is commented out to match. `.github/workflows/deploy.yml` carries the
-three commands needed to put it back online.
+The site is published by GitHub Pages. Pushing to `main` builds and deploys it
+through `.github/workflows/deploy.yml`.
 
 Because the source is ordinary LaTeX, any page also compiles to a PDF, which
 is a quick way to check it before pushing:
