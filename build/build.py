@@ -32,7 +32,8 @@ import subprocess
 import sys
 import tempfile
 from dataclasses import dataclass, field
-from datetime import date, datetime
+from datetime import date, datetime, time, timezone
+from email.utils import format_datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -512,6 +513,12 @@ def fmt_date(d: date | None) -> str:
     return d.strftime("%-d %B %Y") if d else ""
 
 
+def fmt_rss_date(d: date) -> str:
+    """Format a post date in the RFC 2822 form required by RSS 2.0."""
+    stamp = datetime.combine(d, time.min, tzinfo=timezone.utc)
+    return format_datetime(stamp, usegmt=True)
+
+
 def write_page(page: Page, body: str):
     dest = OUT if page.slug == "index" else OUT / page.slug
     dest.mkdir(parents=True, exist_ok=True)
@@ -561,7 +568,8 @@ def build_posts_index(posts: list[Page]):
         description="Writing, mostly about graphs and algorithms.",
         canonical=SITE["url"] + "/posts/",
         nav=nav_html("/posts/"),
-        page_title="Posts", page_meta="",
+        page_title="Posts",
+        page_meta='<a href="/feed.xml" type="application/rss+xml">RSS feed</a>',
         content=listing, year=str(date.today().year),
     )
     (OUT / "posts").mkdir(parents=True, exist_ok=True)
@@ -613,6 +621,13 @@ def build(verbose=False, drafts=False, only=None, quiet=False) -> int:
     posts = sorted([p for p in live if p.kind == "post"],
                    key=lambda p: p.date, reverse=True)
     build_posts_index(posts)
+    # Preview builds include drafts in the posts index, but a feed is a
+    # subscription endpoint: never let an unpublished draft escape into it.
+    feed_posts = sorted(
+        [p for p in pages if p.kind == "post" and not p.draft],
+        key=lambda p: p.date, reverse=True,
+    )
+    write_feed(feed_posts)
 
     sync_assets()
     (OUT / ".nojekyll").write_text("")   # stop Pages running Jekyll over it
@@ -639,6 +654,45 @@ def write_sitemap(pages: list[Page]):
         '<?xml version="1.0" encoding="UTF-8"?>\n'
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
         f"{body}\n</urlset>\n", encoding="utf-8")
+
+
+def write_feed(posts: list[Page]):
+    """Write a summary-only RSS 2.0 feed for published posts."""
+    feed_url = SITE["url"] + "/feed.xml"
+    posts_url = SITE["url"] + "/posts/"
+    items = []
+    for post in posts:
+        post_url = SITE["url"] + post.url
+        items.append(
+            "    <item>\n"
+            f"      <title>{html.escape(strip_tex(post.title))}</title>\n"
+            f"      <link>{html.escape(post_url)}</link>\n"
+            f'      <guid isPermaLink="true">{html.escape(post_url)}</guid>\n'
+            f"      <pubDate>{fmt_rss_date(post.date)}</pubDate>\n"
+            f"      <description>{html.escape(strip_tex(post.summary) or SITE['description'])}</description>\n"
+            "    </item>"
+        )
+
+    last_build = (
+        f"    <lastBuildDate>{fmt_rss_date(posts[0].date)}</lastBuildDate>\n"
+        if posts else ""
+    )
+    body = "\n".join(items)
+    (OUT / "feed.xml").write_text(
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">\n'
+        "  <channel>\n"
+        f"    <title>{html.escape(SITE['title'])}</title>\n"
+        f"    <link>{html.escape(posts_url)}</link>\n"
+        f"    <description>{html.escape(SITE['description'])}</description>\n"
+        "    <language>en</language>\n"
+        f'    <atom:link href="{html.escape(feed_url, quote=True)}" rel="self" type="application/rss+xml"/>\n'
+        f"{last_build}"
+        f"{body}\n"
+        "  </channel>\n"
+        "</rss>\n",
+        encoding="utf-8",
+    )
 
 
 def main():

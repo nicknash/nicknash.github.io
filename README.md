@@ -23,7 +23,8 @@ Add a `.tex` file under `content/posts/`, named `YYYY-MM-DD-slug.tex`:
 ```
 
 That's the whole publishing step — the posts index is generated from whatever
-is in `content/posts/`, sorted by date. Push to `main` and it deploys.
+is in `content/posts/`, sorted by date. The same metadata generates the RSS
+feed at `/feed.xml`. Push to `main` and it deploys.
 
 Pages that aren't posts go directly in `content/` and get their own URL from
 the filename — `content/about.tex` would serve at `/about/`. Add them to `NAV`
