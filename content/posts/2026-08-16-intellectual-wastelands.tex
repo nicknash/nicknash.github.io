@@ -32,10 +32,10 @@
 \begin{document}
 
 \begin{abstract}
-In Summer 2025, I looked for an easy graph algorithm to improve.
+A while back, I looked for an easy graph algorithm to improve.
 After weeks of work, and long peer review, it ended up as a published \href{https://doi.org/10.7155/jgaa.v30i1.3137}{paper}.
-In Summer 2026, \href{https://chatgpt.com/share/6a8434d4-c278-83ed-aeb1-f2f0cd1bdb62}{AI}
-came up with all of the ideas in the paper in about two hours. I then considered
+Before the paper had appeared anywhere online, I fed it to an \href{https://chatgpt.com/share/6a8434d4-c278-83ed-aeb1-f2f0cd1bdb62}{AI}
+which then came up with all of the ideas in the paper in about two hours. I then considered
 automating this entire process: Find \textit{all} ``easy'' graph algorithms,
 and improve them with AI. At first this idea seemed cool, now I wonder, might I instead contribute to an
 \textit{intellectual wasteland}?
@@ -44,7 +44,7 @@ and improve them with AI. At first this idea seemed cool, now I wonder, might I 
 \section{Strange Recreations}
 
 In Summer 2025 I was looking for something to keep my brain ticking over. I also thought it would be nice if
-I would be able to publish the result of this tinkering in a peer-reviewed academic venue of some kind.
+I could publish the result of this tinkering in a peer-reviewed academic venue of some kind.
 
 Long ago in I had done a (very) small bit of \href{https://researchrepository.ul.ie/server/api/core/bitstreams/12fd8a39-ae57-4f47-8301-1f5e231e78fc/content}{work} on graph algorithms, and so I looked for an algorithm there.
 
@@ -52,7 +52,7 @@ Long ago in I had done a (very) small bit of \href{https://researchrepository.ul
 
 I quickly discovered a candidate problem: \href{https://www.graphclasses.org/classes/problem_Weighted_feedback_vertex_set.html}{minimum feedback vertex set}, restricted to \href{https://www.graphclasses.org/classes/gc_132.html}{circle graphs}.
 
-Given one of the input graphs on the left, the problem asks for the largest set of nodes (dots) that can be chosen such that the resulting graph (which includes all the edges connected to those nodes) has no cycles.
+Given one of the input graphs on the left, the problem asks for the largest set of nodes (dots) that can be chosen such that the resulting graph (which includes all the edges connected to those nodes at both ends) has no cycles.
 This way of describing the problem is referred to as finding a \textit{maximum induced forest}.
 
 \begin{figure}[ht]
@@ -158,7 +158,7 @@ than the $O(n^7)$ time required by the best previously known algorithm.
 It is important to emphasize that the problem I chose has essentially nobody interested in it. If it did, it would long ago have been mined for all obvious improvements. It has no applications I'm aware of, either.
 That wasn't the point for me though - I was just using it to scrape away a little of the rust from my brain.
 
-With that said, it is still stunning that \href{https://chatgpt.com/share/6a8434d4-c278-83ed-aeb1-f2f0cd1bdb62}{ChatGPT 5.6 Sol came up with} exactly the algorithmic improvements that were published in my paper,
+With that said, it is still stunning to pre-AI-era-me that \href{https://chatgpt.com/share/6a8434d4-c278-83ed-aeb1-f2f0cd1bdb62}{ChatGPT 5.6 Sol came up with} exactly the algorithmic improvements that were published in my paper,
 and with nothing other than this prompt (with \href{https://doi.org/10.1016/j.ipl.2007.12.003}{Gavril's paper} attached):
 
 \begin{promptbox}
@@ -172,7 +172,7 @@ See if you can get to subquintic time.
 \end{promptbox}
 
 It is often (I guess correctly) said that the frontier AI companies have over-fitted and maxed-out various public benchmarks. So this for me, is a nice personal data-point all of my own.
-I was as certain as anyone could be that this algorithm had never been published before.
+I was as certain as anyone could be that this algorithm had never been published before, and wasn't online anywhere.
 I also knew the level of effort I had put in to understand the existing algorithm for this problem and improve it.
 
 As a result, this outcome is a nice little ruler for me to measure just how good these models are.
