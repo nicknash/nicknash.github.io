@@ -13,8 +13,8 @@ The pipeline, per source file:
        and wrap the result in the site template.
 
 Step 4 inlines rather than linking the SVGs for two reasons: it lets the
-diagrams inherit the page's text colour through `currentColor` (so they work
-in both themes), and it avoids a second network round-trip per figure.
+diagrams inherit the page's text colour through `currentColor`, and it avoids
+a second network round-trip per figure.
 
 Usage:  python3 build/build.py [--clean] [--serve]
 """
@@ -259,8 +259,8 @@ def render_figure(code: str, sig: str, verbose=False) -> Path:
              "-halt-on-error", "-output-directory", str(td), str(tex)],
             cwd=td, env=tex_env(), what=f"lualatex on figure {sig}")
 
-        # --currentcolor turns pure black into `currentColor`, which is what
-        # lets a diagram follow the page's text colour in dark mode.
+        # --currentcolor turns pure black into `currentColor`, so diagrams
+        # follow the page's text colour.
         # --exact-bbox measures the real ink rather than trusting TeX's box.
         run(["dvisvgm", "--exact-bbox", "--font-format=woff2",
              "--currentcolor=#000000", "--optimize=all", "--no-fonts=0",

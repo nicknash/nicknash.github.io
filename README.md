@@ -54,9 +54,8 @@ Figures are plain TikZ — just write a `tikzpicture` in the document. Anything
 used inside one must be reachable from `lib/ghbtikz.sty`, because figures are
 compiled in isolation.
 
-Diagrams drawn in default black automatically follow the page's text colour, so
-they work in dark mode without a second asset. Greys written as `black!30`
-stay fixed, so avoid those for anything load-bearing on a dark background.
+Diagrams drawn in default black automatically follow the page's text colour.
+Greys written as `black!30` stay fixed.
 
 ## Building
 
@@ -103,7 +102,7 @@ make pdf F=content/posts/2026-08-16-counting-triangles.tex
    with LuaLaTeX, and converted to SVG by dvisvgm. Results are cached by a hash
    of the picture *and* the style files, so editing `\tikzset` correctly
    invalidates stale figures. `dvisvgm --currentcolor` maps pure black to
-   `currentColor`, which is what makes dark mode work.
+   `currentColor`, so diagrams inherit the page's text colour.
 2. **Rewrite.** Each picture becomes an `\includegraphics` of its SVG, and
    `\ghbHTML` is defined so `ghb.sty` skips loading TikZ — LaTeXML never has to
    deal with it.

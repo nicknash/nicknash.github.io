@@ -36,9 +36,7 @@
 %
 % Note on colour: the build converts pure black to `currentColor` in the SVG,
 % so anything drawn in default black automatically follows the page's text
-% colour and works in both light and dark themes. Greys are given as
-% black!NN, which resolves to a fixed grey -- fine for fills, but avoid it for
-% anything that must stay legible against a dark background.
+% colour. Greys are given as black!NN, which resolves to a fixed grey.
 \tikzset{
   vertex/.style   = {circle, draw, thick, minimum size=6.5mm, inner sep=0pt,
                      font=\small},

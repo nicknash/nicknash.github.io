@@ -4,11 +4,11 @@
    The goal is a page that reads like a well-set journal article but behaves
    like a web page: one column at a comfortable measure, real small-caps
    theorem heads, math set in a proper OpenType MATH font, and diagrams that
-   follow the text colour into dark mode.
+   follow the text colour.
 
    Structure:
      1. Fonts
-     2. Theme tokens
+     2. Design tokens
      3. Base typography
      4. Page furniture (header, nav, footer)
      5. Document body -- LaTeXML output
@@ -53,7 +53,7 @@
   font-weight: 400; font-style: normal; font-display: swap;
 }
 
-/* --- 2. Theme tokens ---------------------------------------------------- */
+/* --- 2. Design tokens --------------------------------------------------- */
 
 :root {
   --serif: "STIX Two Text", Charter, "Bitstream Charter", Cambria, Georgia,
@@ -78,34 +78,6 @@
   --accent:    #9c3d1c;
   --accent-bg: #9c3d1c14;
   --shadow:    0 1px 2px #0000000d, 0 4px 14px #00000008;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg:        #121316;
-    --bg-sunk:   #1a1b1f;
-    --fg:        #e9e7e1;
-    --fg-muted:  #a3a09a;
-    --fg-faint:  #7d7a74;
-    --rule:      #2b2c31;
-    --rule-firm: #3d3e45;
-    --accent:    #e9a072;
-    --accent-bg: #e9a07216;
-    --shadow:    none;
-  }
-}
-
-:root[data-theme="dark"] {
-  --bg:        #121316;
-  --bg-sunk:   #1a1b1f;
-  --fg:        #e9e7e1;
-  --fg-muted:  #a3a09a;
-  --fg-faint:  #7d7a74;
-  --rule:      #2b2c31;
-  --rule-firm: #3d3e45;
-  --accent:    #e9a072;
-  --accent-bg: #e9a07216;
-  --shadow:    none;
 }
 
 /* --- 3. Base typography ------------------------------------------------- */
@@ -236,28 +208,6 @@ hr {
   color: var(--fg);
   border-bottom-color: var(--accent);
 }
-
-.theme-toggle {
-  display: grid;
-  place-items: center;
-  width: 2rem; height: 2rem;
-  padding: 0;
-  color: var(--fg-muted);
-  background: none;
-  border: 1px solid var(--rule);
-  border-radius: 6px;
-  cursor: pointer;
-}
-.theme-toggle:hover { color: var(--fg); border-color: var(--rule-firm); }
-/* Show whichever glyph represents the theme you would switch *to*. */
-.theme-toggle .moon { display: none; }
-.theme-toggle .sun  { display: inline; }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .theme-toggle .moon { display: inline; }
-  :root:not([data-theme="light"]) .theme-toggle .sun  { display: none; }
-}
-:root[data-theme="dark"] .theme-toggle .moon { display: inline; }
-:root[data-theme="dark"] .theme-toggle .sun  { display: none; }
 
 main {
   max-width: calc(var(--measure) + 12rem);
@@ -520,9 +470,8 @@ math[display="inline"] { line-height: 1; }
 }
 
 /* The build converts pure black in the SVG to currentColor, so a diagram
-   picks up the page's text colour and works in both themes without a second
-   asset. Width comes from an inline style in em, set at build time from the
-   figure's TeX dimensions. */
+   picks up the page's text colour. Width comes from an inline style in em,
+   set at build time from the figure's TeX dimensions. */
 .ghb-tikz {
   color: var(--fg);
   height: auto;
@@ -763,7 +712,7 @@ math[display="inline"] { line-height: 1; }
 
 @media print {
   :root { --bg: #fff; --fg: #000; --fg-muted: #333; --rule: #ccc; }
-  .site-header, .site-footer, .theme-toggle, .skip { display: none; }
+  .site-header, .site-footer, .skip { display: none; }
   main { padding: 0; max-width: none; }
   .doc { max-width: none; }
   a { color: #000; text-decoration: underline; }
