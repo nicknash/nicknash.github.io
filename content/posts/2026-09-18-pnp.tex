@@ -1,0 +1,104 @@
+\documentclass[11pt]{article}
+\usepackage{ghb}
+
+% On the site these become semantic block quotations styled by site.css.  The
+% PDF gets a matching shaded panel rather than a plain indented quotation.
+\ifdefined\ghbHTML
+  \newenvironment{promptbox}{\begin{quote}}{\end{quote}}
+\else
+  \usepackage{tcolorbox}
+  \newtcolorbox{promptbox}{
+    colback=black!4,
+    colframe=black!20,
+    boxrule=0.4pt,
+    arc=2pt,
+    left=8pt,
+    right=8pt,
+    top=6pt,
+    bottom=6pt,
+    before skip=10pt,
+    after skip=10pt
+  }
+\fi
+
+\title{I guess we live in the $P = NP$ world after all}
+\date{2026-09-18}
+
+\summary{AI haunts G\"odel's Lost Letter}
+
+\begin{document}
+
+\begin{abstract}
+One of the most important questions in computer science is whether it is intrinsically
+more time-consuming to \textit{come up} with an answer than to \textit{verify} one.
+This is the so-called $P = NP$ question: if they're equal it's as ``easy'' to come up with an answer as it is to verify the answer.
+That would be pretty weird: doesn't coming up with answers require more creativity? 
+So most computer scientists are pretty sure $P \neq NP$. But maybe not! It's a \textsc{big} question.
+Just recently it seemed to me, \textit{maybe it doesn't matter anymore?}
+\end{abstract}
+
+\section{A Magic Answer Box}
+
+Imagine we had a machine that could answer any question. Better than that though, it gives you an 
+incontrovertible \textit{proof} backing its answer up.
+
+A machine like that would be easy to build: It's just a computer! It doesn't even need any fancy AI.
+Here's how it works: You give it a (mathematical) statement $F$, and some ginormous number, $n$. 
+It tells you whether there is a proof of $F$ of length at most $n$.
+If there is, it can hand you the proof.
+
+And it's easy! The magic answer box just generates all possible strings of length at most $n$, and checks if any of them are valid proofs of $F$. 
+Voil\`a! Creativity is automated.
+
+\section{Complexity}
+
+The only issue with the magic answer box is that it's \textit{slow}. The only general algorithm we know that is guaranteed to work is very, very slow. 
+Sure, \textit{checking} one is easier. But we don't know an efficient algorithm for finding the proofs. It all sounds like the $P = NP$ question! 
+
+As one famous meat-mathematician once wrote to another: 
+
+\begin{promptbox}
+\large\itshape
+``The mental work of a mathematician concerning Yes-or-No questions
+could be completely replaced by a machine.''
+
+\par\medskip
+	\hfill\normalsize --- \href{https://rjlipton.com/the-gdel-letter}{Kurt G\"odel's ``lost'' letter to John von Neumann, 1956}
+\end{promptbox}
+
+So, $P = NP$ being true would be crazy - we might then have an efficient algorithm for automating mathematics! 
+
+\section{One Million Dollars}
+
+With the recent smashing of Navier-Stokes by \href{https://openai.com/index/navier-stokes-solution/}{OpenAI}, I've had the
+\href{https://www.claymath.org/millennium-problems/}{Millennium Prize Problems} on my mind.
+They serve as dramatic lighthouses for mathematical endeavour.
+These are the amazing, rock hard problems that you get a million dollars for settling (with a proof!). 
+
+The difficulty with having them on my mind though, is that I don't know what any of them really \textit{mean}. Except,
+of course for the $P = NP$ question. That one, I know a little about. In recent weeks, I've heard people
+say that it is likely the \textit{hardest} of them all. Even the magician mathematician Terence 
+Tao is \href{https://www.youtube.com/watch?v=PtsrAw1LR3E&t=2727s}{on record} saying that it would probably be the last problem to fall.
+
+So I've dared to wonder recently: maybe I'll know for sure whether $P \neq NP$ soon.
+
+\section{Brainworm}
+
+Of course, you can guess the dreadful imposition that comes blacking in one's mind: We \textit{have} automated creativity.
+An AI has settled Navier-Stokes. I personally have had AIs answer many publishable questions in computer science. 
+I can't get it out of my head, it turns out, \textit{we live in the $P = NP$ world}!
+
+\section{Of Course Not Quite}
+
+Now, sure, yes, $P \neq NP$. Or maybe not. And G\"odel's magic-answer-box machine is \textit{exhaustive}, and AI is not.
+Maybe that makes all the difference. The AIs might fail on some problems, and the magic-answer-box would be guaranteed not to ``miss'' any proof. 
+But it does make me wonder. Perhaps every natural mathematical question whose answer is within reach of human understanding is also within reach of AI.
+Maybe \textit{of course}, and not perhaps at all. 
+
+\section{I See a Darkness}
+
+So why do I care if $P = NP$ anymore? It feels like the only millennium problem I understood, is maybe just another 
+curiosity now. Perhaps the funniest world would
+be the one where AIs automate creativity, and quickly prove $P = NP$, via an $O(n^{100})$ time algorithm for \href{https://en.wikipedia.org/wiki/Satisfiability}{SAT}.
+
+\end{document}
