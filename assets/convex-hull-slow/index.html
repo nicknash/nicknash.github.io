@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fdfcf9">
+  <meta name="description" content="Humans only alongside AI ruins serendipity: AI fills existing gaps, but new human discoveries become less frequent.">
+  <title>Humans only and AI ruins serendipity</title>
+  <script>if(window.self!==window.top)document.documentElement.classList.add('embedded');</script>
+  <style>
+    :root { color-scheme:light; --bg:#fdfcf9; --fg:#30312e; --muted:#777870; }
+    * { box-sizing:border-box; }
+    html.embedded { overflow:hidden; }
+    body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    main { --columns:2; --gap:18px; --visual-width:calc((100vw - 2 * var(--gap)) / 3); width:100%; padding:16px 0 8px; margin:auto; }
+    .feedback-direction { margin:0 0 20px; color:var(--fg); }
+    .feedback-direction p { text-align:center; margin:0 14px 13px; font-size:20px; font-weight:600; letter-spacing:-.025em; }
+    .feedback-arrow { position:relative; height:2px; margin-right:3px; background:var(--fg); }
+    .feedback-arrow::after { content:""; position:absolute; right:0; top:-5px; width:10px; height:10px; border-top:2px solid var(--fg); border-right:2px solid var(--fg); transform:rotate(45deg); }
+    .panels { display:grid; grid-template-columns:repeat(var(--columns),minmax(0,1fr)); gap:var(--gap); }
+    figure { position:relative; margin:0; min-width:0; padding-top:27px; }
+    .panel-label { position:absolute; top:0; left:0; right:0; margin:0; text-align:center; font:400 16px/1.2 Georgia,"Times New Roman",serif; }
+    /* Keep one world-to-pixel scale across the two- and three-panel rows. */
+    .visual { position:relative; width:min(100%,var(--visual-width)); margin-inline:auto; aspect-ratio:516/438; }
+    canvas { display:block; width:100%; height:auto; }
+    .poster { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; }
+    .poster[hidden] { display:none; }
+    .area-chart { position:relative; height:120px; margin-bottom:8px; --curve:#30312e; }
+    .area-plot { position:absolute; left:4px; right:8px; top:12px; bottom:8px; }
+    .area-plot svg { width:100%; height:100%; display:block; overflow:visible; }
+    .scale-badge { position:absolute; z-index:1; left:4px; top:8px; padding:0; color:#5a5b55; font:italic 12px/1.4 Georgia,"Times New Roman",serif; }
+    .area-line { fill:none; stroke:var(--curve); stroke-width:1.8; stroke-linejoin:round; stroke-linecap:round; vector-effect:non-scaling-stroke; }
+    .area-shade { fill:var(--curve); opacity:.035; }
+    .area-cursor { stroke:var(--curve); stroke-width:1; opacity:.18; vector-effect:non-scaling-stroke; }
+    .area-dot { position:absolute; width:6px; height:6px; border-radius:50%; background:var(--curve); transform:translate(-50%,50%); }
+    .decoder { position:fixed; width:1px; height:1px; opacity:0; pointer-events:none; left:0; bottom:0; }
+    .sr-only { position:absolute; width:1px; height:1px; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }
+    #error { color:#974d35; margin:14px 0; font-size:13px; }
+    #error[hidden] { display:none; }
+    @media(max-width:640px) {
+      main { --gap:12px; padding:16px 0 8px; }
+      .panel-label { font-size:clamp(13px,4.5vw,16px); }
+      .feedback-direction { margin-bottom:22px; }
+      .feedback-direction p { font-size:18px; }
+      .area-chart { height:112px; }
+      .scale-badge { font-size:clamp(9px,2.7vw,12px); }
+    }
+  </style>
+</head>
+<body>
+<noscript><style>main{display:none} .static-figure{width:100%;height:auto;display:block}</style><img class="static-figure" src="poster.png" alt="Humans only alongside AI ruins serendipity: AI fills existing gaps, but new human discoveries become less frequent."></noscript>
+<main aria-label="Humans only and AI ruins serendipity">
+
+  <p class="sr-only">Humans only alongside AI ruins serendipity: AI fills existing gaps, but new human discoveries become less frequent. Rust markers are new discoveries: diamonds for humans, triangles for AI. Charcoal regions are filled knowledge. Shapes use the same spatial scale across both figures. The plots show filled area over time on a shared linear scale, except RSI, which uses ten times the vertical range.</p>
+  <div class="panels">
+    <figure>
+      <h2 class="panel-label">Humans only</h2>
+      <div class="visual">
+        <canvas width="516" height="438" role="img" aria-label="No AI: scattered pockets of knowledge expand while gaps remain."></canvas>
+        <img class="poster" src="../convex-hull/circle-0.webp" alt="" width="516" height="438">
+      </div>
+      <figcaption class="sr-only">Filled knowledge and its area over time.</figcaption>
+      <div class="area-chart" role="img" aria-label="No AI: filled area over time, on a linear scale shared across both figures.">
+        <div class="area-plot" aria-hidden="true">
+          <svg viewBox="0 0 1000 1000" preserveAspectRatio="none">
+            <path class="area-shade" d="M0 1000Z"/>
+            <path class="area-line" d="M0 1000"/>
+            <line class="area-cursor" x1="0" x2="0" y1="0" y2="1000"/>
+          </svg>
+          <span class="area-dot" style="left:0;bottom:0"></span>
+        </div>
+      </div>
+    </figure>
+    <figure>
+      <h2 class="panel-label">AI ruins serendipity</h2>
+      <div class="visual">
+        <canvas width="516" height="438" role="img" aria-label="Slowdown: AI fills the gaps quickly, but new human discoveries become progressively less frequent."></canvas>
+        <img class="poster" src="../convex-hull/circle-1.webp" alt="" width="516" height="438">
+      </div>
+      <figcaption class="sr-only">Filled knowledge and its area over time.</figcaption>
+      <div class="area-chart" role="img" aria-label="AI slows human discovery: filled area over time, on a linear scale shared across both figures.">
+        <div class="area-plot" aria-hidden="true">
+          <svg viewBox="0 0 1000 1000" preserveAspectRatio="none">
+            <path class="area-shade" d="M0 1000Z"/>
+            <path class="area-line" d="M0 1000"/>
+            <line class="area-cursor" x1="0" x2="0" y1="0" y2="1000"/>
+          </svg>
+          <span class="area-dot" style="left:0;bottom:0"></span>
+        </div>
+      </div>
+    </figure>
+
+
+
+  </div>
+  <p id="error" role="alert" hidden></p>
+  <p class="sr-only" id="status">Loading the comparison.</p>
+  <video id="source" class="decoder" autoplay loop muted playsinline preload="auto" tabindex="-1" aria-hidden="true"></video>
+</main>
+<script id="area-data" type="application/json">{"fps":30,"duration":4.0,"hold":0.3,"yMin":0,"yMax":[60,60],"scale":"linear","unit":"multiples of initial filled area","names":["Humans only","AI ruins serendipity"],"series":[[1.0,1.0,1.0,1.0,1.049291,1.049291,1.049291,1.049291,1.049291,1.049291,1.099257,1.099257,1.099257,1.099257,1.099257,1.099257,1.164754,1.164754,1.164754,1.164754,1.164754,1.164754,1.208643,1.208643,1.208643,1.208643,1.208643,1.264011,1.264011,1.264011,1.264011,1.264011,1.264011,1.298447,1.298447,1.298447,1.298447,1.298447,1.298447,1.328157,1.328157,1.328157,1.328157,1.328157,1.328157,1.35449,1.35449,1.35449,1.35449,1.35449,1.35449,1.3842,1.3842,1.3842,1.3842,1.3842,1.412559,1.412559,1.412559,1.412559,1.412559,1.412559,1.449021,1.449021,1.449021,1.449021,1.449021,1.449021,1.480081,1.480081,1.480081,1.480081,1.480081,1.480081,1.529372,1.529372,1.529372,1.529372,1.529372,1.529372,1.554355,1.554355,1.554355,1.554355,1.554355,1.582714,1.582714,1.582714,1.582714,1.582714,1.582714,1.619176,1.619176,1.619176,1.619176,1.619176,1.619176,1.654288,1.654288,1.654288,1.654288,1.654288,1.654288,1.689399,1.689399,1.689399,1.689399,1.689399,1.689399,1.723835,1.723835,1.723835,1.723835,1.723835,1.756246,1.756246,1.756246,1.756246,1.756246,1.756246,1.756246],[1.0,1.663036,3.049385,4.254906,4.515298,4.577567,4.761484,4.780498,4.780498,4.780498,4.780498,4.855848,5.201964,5.208284,5.208284,5.208284,5.208284,5.208284,5.208284,5.208284,5.20963,5.417942,5.584318,5.584318,5.584318,5.584318,5.584318,5.584318,5.584318,5.584318,5.584318,5.584318,5.584318,5.584318,5.584318,5.584318,5.591661,5.706317,5.754745,5.754745,5.754745,5.754745,5.754745,5.754745,5.754745,5.754745,5.754745,5.754745,5.754745,5.754745,5.754745,5.754745,5.754745,5.754745,5.754745,5.754745,5.754745,5.754745,5.754745,5.754745,5.754745,5.754745,5.757813,5.89204,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.958478,5.962662,6.221513,6.351395,6.351395,6.351395,6.351395,6.351395,6.351395,6.351395,6.351395,6.351395,6.351395,6.351395,6.351395,6.351395,6.351395]],"rounds":[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]],"measurement":"Union of drawn islands and connections without AI; full convex-hull area after AI infill, including beyond the canvas. Initial infill interpolates by its opacity.","tiles":[0,1],"video":{"tileWidth":516,"tileHeight":438,"stride":560,"x":16,"y":16,"height":480},"sharedYMax":60}</script>
+<script>
+(() => {
+  'use strict';
+  const video=document.getElementById('source');
+  const error=document.getElementById('error');
+  const status=document.getElementById('status');
+  const contexts=[...document.querySelectorAll('canvas')].map(c=>c.getContext('2d'));
+  const posters=[...document.querySelectorAll('.poster')];
+  const AREA=JSON.parse(document.getElementById('area-data').textContent);
+  const charts=[...document.querySelectorAll('.area-chart')];
+  const lines=[...document.querySelectorAll('.area-line')];
+  const shades=[...document.querySelectorAll('.area-shade')];
+  const cursors=[...document.querySelectorAll('.area-cursor')];
+  const dots=[...document.querySelectorAll('.area-dot')];
+  const names=AREA.names;
+  const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
+  const y=(value,i)=>1000*(1-(value-AREA.yMin)/(AREA.yMax[i]-AREA.yMin));
+  let lastFrame=-1,frameRequest=0,ready=false,playAttempt=false,failed=false;
+  video.muted=true;video.loop=true;video.autoplay=!reducedMotion.matches;
+
+  function updateAreas(time) {
+    const frame=Math.min(AREA.series[0].length-1,Math.max(0,Math.floor((time+1e-6)*AREA.fps)));
+    if(frame===lastFrame)return;
+    lastFrame=frame;
+    const x=1000*frame/(AREA.series[0].length-1);
+    AREA.series.forEach((values,i)=>{
+      const value=values[frame],height=y(value,i);
+      const path=values.slice(0,frame+1).map((v,n)=>`${n?'L':'M'}${(1000*n/(values.length-1)).toFixed(2)} ${y(v,i).toFixed(2)}`).join(' ');
+      lines[i].setAttribute('d',path);
+      shades[i].setAttribute('d',`${path} L${x.toFixed(2)} 1000 L0 1000 Z`);
+      cursors[i].setAttribute('x1',x);cursors[i].setAttribute('x2',x);
+      dots[i].style.left=`${x/10}%`;dots[i].style.bottom=`${(1000-height)/10}%`;
+      charts[i].setAttribute('aria-label',`${names[i]}: filled area ${value.toFixed(1)} times the starting area at ${(frame/AREA.fps).toFixed(1)} seconds. Linear scale from ${AREA.yMin} to ${AREA.yMax[i]}${AREA.yMax[i]===10*AREA.sharedYMax?', ten times the vertical range of the other plots':', shared across both figures'}. Area includes growth beyond the animation frame.`);
+    });
+  }
+  function draw() {
+    if(video.readyState<2 || !video.videoWidth)return;
+    const {stride,x,y,tileWidth,tileHeight}=AREA.video;
+    contexts.forEach((ctx,i)=>ctx.drawImage(video,AREA.tiles[i]*stride+x,y,tileWidth,tileHeight,0,0,516,438));
+    posters.forEach(p=>p.hidden=true);
+    // Keep the curves on the playback clock, including every loop restart.
+    updateAreas(video.currentTime);
+  }
+  function paintStill() {
+    draw();requestAnimationFrame(()=>requestAnimationFrame(()=>draw()));
+  }
+  function cancelFrame() {
+    if(!frameRequest)return;
+    if(video.cancelVideoFrameCallback)video.cancelVideoFrameCallback(frameRequest);
+    else cancelAnimationFrame(frameRequest);
+    frameRequest=0;
+  }
+  function requestFrame() {
+    cancelFrame();if(video.paused)return;
+    const next=()=>{frameRequest=0;draw();requestFrame();};
+    frameRequest=video.requestVideoFrameCallback?video.requestVideoFrameCallback(next):requestAnimationFrame(next);
+  }
+  async function startPlayback() {
+    if(!ready || failed || document.hidden || playAttempt || reducedMotion.matches)return;
+    playAttempt=true;
+    try {
+      await video.play();
+      if(document.hidden || reducedMotion.matches)video.pause();
+      else status.textContent=`${contexts.length} synchronized animations, looping automatically.`;
+    } catch {
+      // Keep a useful final illustration if the browser blocks muted autoplay.
+      if(video.currentTime!==AREA.duration)video.currentTime=AREA.duration;paintStill();
+      status.textContent='Static comparison. Tap the figure to start the animation.';
+    } finally {playAttempt=false;}
+  }
+  function showError() {
+    failed=true;ready=false;video.pause();cancelFrame();
+    posters.forEach(p=>p.hidden=false);updateAreas(AREA.duration);
+    error.hidden=false;error.textContent='Animation unavailable; showing the final comparison.';
+  }
+  video.addEventListener('canplay',()=>{
+    ready=true;
+    if(reducedMotion.matches){video.pause();if(video.currentTime!==AREA.duration)video.currentTime=AREA.duration;}
+    paintStill();startPlayback();
+  });
+  video.addEventListener('seeked',paintStill);
+  video.addEventListener('timeupdate',()=>updateAreas(video.currentTime));
+  video.addEventListener('play',()=>{
+    if(document.hidden || reducedMotion.matches){video.pause();return;}
+    requestFrame();
+  });
+  video.addEventListener('pause',cancelFrame);
+  video.addEventListener('ended',()=>{video.currentTime=0;startPlayback();});
+  video.addEventListener('error',showError);
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)video.pause();else startPlayback();});
+  document.addEventListener('pointerdown',()=>{if(video.paused)startPlayback();});
+  reducedMotion.addEventListener('change',()=>{
+    if(reducedMotion.matches){video.pause();video.currentTime=AREA.duration;paintStill();}
+    else {video.currentTime=0;startPlayback();}
+  });
+  async function loadAnimation() {
+    try {
+      const response=await fetch('../convex-hull/circle-loop.mp4',{credentials:'same-origin'});
+      if(!response.ok)throw new Error('Animation unavailable');
+      video.src=URL.createObjectURL(await response.blob());video.load();
+    } catch {showError();}
+  }
+  updateAreas(AREA.duration);loadAnimation();
+})();
+</script>
+</body>
+</html>

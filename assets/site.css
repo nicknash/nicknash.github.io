@@ -22,6 +22,28 @@
    Selectors prefixed .ltx_ come from LaTeXML; do not rename them.
    =========================================================================== */
 
+/* Local animated figures fill the article column. */
+.ghb-animation {
+  display:block;
+  width:100%;
+  margin:1.6rem 0;
+}
+.ghb-animation iframe {
+  display:block;
+  width:100%;
+  height:360px;
+  border:0;
+}
+.ghb-animation-print { display:none; }
+@media(max-width:700px) {
+  .ghb-animation iframe { height:980px; }
+}
+@media print {
+  .ghb-animation { width:100%; break-inside:avoid; }
+  .ghb-animation iframe { display:none; }
+  .ghb-animation-print { display:block; }
+}
+
 /* --- 1. Fonts ----------------------------------------------------------- */
 /* Subset to Latin + common symbols by build/make-fonts.sh. The math face is
    shipped whole and is only fetched by browsers on pages that contain math,

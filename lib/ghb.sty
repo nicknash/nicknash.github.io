@@ -40,6 +40,12 @@
 \newcommand{\summary}[1]{\renewcommand{\ghbsummaryvalue}{#1}}
 \newcommand{\draft}{}
 
+% HTML embeds a local animated figure; PDF uses its final still.
+% The first argument names a directory in assets/, the second is plain alt text.
+\newcommand{\animation}[2]{%
+  \par\noindent\includegraphics[width=\linewidth]{assets/#1/poster.png}\par
+}
+
 % ---- Theorem environments --------------------------------------------------
 % Numbered within section, sharing one counter so numbering reads in document
 % order (Theorem 2.1, Lemma 2.2, ...) the way most journals set it.

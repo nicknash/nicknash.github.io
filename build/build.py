@@ -336,6 +336,51 @@ def convert(page: Page, rewritten: str, figures: dict, verbose=False) -> str:
 # Stage 3: post-processing
 # ---------------------------------------------------------------------------
 
+ANIMATION_RE = re.compile(r"\\animation\s*\{([a-z0-9-]+)\}\s*\{([^{}]+)\}")
+
+
+def extract_animations(src: str):
+    """Leave a link LaTeXML understands, then replace it with a local figure."""
+    animations = {}
+
+    def sub(m):
+        slug, alt = m.groups()
+        for filename in ("index.html", "poster.png"):
+            if not (ASSETS / slug / filename).is_file():
+                raise BuildError(f"animation {slug}: missing {filename}")
+        animations[slug] = alt
+        return rf"\href{{ghbanimation:{slug}}}{{{alt}}}"
+
+    rewritten = ANIMATION_RE.sub(sub, src)
+    if re.search(r"\\animation\b", rewritten):
+        raise BuildError(r"\animation requires a local asset slug and plain alt text")
+    return rewritten, animations
+
+
+def inline_animations(body: str, animations: dict) -> str:
+    for slug, alt in animations.items():
+        label = html.escape(alt, quote=True)
+        image = (f'<img src="/assets/{slug}/poster.png" alt="{label}" '
+                 f'width="1800" height="640">')
+        figure = (
+            f'<span class="ghb-animation">'
+            f'<iframe src="/assets/{slug}/index.html" title="{label}" '
+            f'allow="autoplay" loading="lazy"></iframe>'
+            f'<span class="ghb-animation-print">{image}</span>'
+            f'<noscript><style>.ghb-animation iframe{{display:none}}</style>'
+            f'{image}</noscript></span>'
+        )
+        body, count = re.subn(
+            rf'<a\b[^>]*href="ghbanimation:{re.escape(slug)}"[^>]*>.*?</a>',
+            lambda _: figure, body, flags=re.S,
+        )
+        if not count:
+            raise BuildError(f"animation {slug}: placeholder missing from HTML")
+    if animations:
+        body += '<script src="/assets/animations.js" defer></script>'
+    return body
+
+
 def div_span(doc: str, start: int) -> int:
     """Index just past the </div> matching the <div> opened at `start`.
 
@@ -611,11 +656,13 @@ def build(verbose=False, drafts=False, only=None, quiet=False) -> int:
         if not quiet:
             print(f"  {p.src.relative_to(ROOT)}")
         src = read(p.src)
+        src, animations = extract_animations(src)
         rewritten, figures = extract_figures(src, verbose)
         if figures and not quiet:
             print(f"      {len(figures)} figure(s)")
         raw = convert(p, rewritten, figures, verbose)
-        body = normalize_headings(inline_figures(slice_body(raw), figures))
+        body = normalize_headings(
+            inline_animations(inline_figures(slice_body(raw), figures), animations))
         write_page(p, body)
 
     posts = sorted([p for p in live if p.kind == "post"],

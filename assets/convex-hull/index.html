@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fdfcf9">
+  <meta name="description" content="Three illustrative paths with increasing feedback: weak feedback, strong feedback, and autonomous recursive self-improvement.">
+  <title>Knowledge with stronger feedback</title>
+  <script>if(window.self!==window.top)document.documentElement.classList.add('embedded');</script>
+  <style>
+    :root { color-scheme:light; --bg:#fdfcf9; --fg:#30312e; --muted:#777870; }
+    * { box-sizing:border-box; }
+    html.embedded { overflow:hidden; }
+    body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    main { --columns:3; --gap:18px; --visual-width:calc((100vw - 2 * var(--gap)) / 3); width:100%; padding:16px 0 8px; margin:auto; }
+    .feedback-direction { margin:0 0 20px; color:var(--fg); }
+    .feedback-direction p { text-align:center; margin:0 14px 13px; font-size:20px; font-weight:600; letter-spacing:-.025em; }
+    .feedback-arrow { position:relative; height:2px; margin-right:3px; background:var(--fg); }
+    .feedback-arrow::after { content:""; position:absolute; right:0; top:-5px; width:10px; height:10px; border-top:2px solid var(--fg); border-right:2px solid var(--fg); transform:rotate(45deg); }
+    .panels { display:grid; grid-template-columns:repeat(var(--columns),minmax(0,1fr)); gap:var(--gap); }
+    figure { position:relative; margin:0; min-width:0; padding-top:27px; }
+    .panel-label { position:absolute; top:0; left:0; right:0; margin:0; text-align:center; font:400 16px/1.2 Georgia,"Times New Roman",serif; }
+    /* Keep one world-to-pixel scale across the two- and three-panel rows. */
+    .visual { position:relative; width:min(100%,var(--visual-width)); margin-inline:auto; aspect-ratio:516/438; }
+    canvas { display:block; width:100%; height:auto; }
+    .poster { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; }
+    .poster[hidden] { display:none; }
+    .area-chart { position:relative; height:120px; margin-bottom:8px; --curve:#30312e; }
+    .area-plot { position:absolute; left:4px; right:8px; top:12px; bottom:8px; }
+    .area-plot svg { width:100%; height:100%; display:block; overflow:visible; }
+    .scale-badge { position:absolute; z-index:1; left:4px; top:8px; padding:0; color:#5a5b55; font:italic 12px/1.4 Georgia,"Times New Roman",serif; }
+    .area-line { fill:none; stroke:var(--curve); stroke-width:1.8; stroke-linejoin:round; stroke-linecap:round; vector-effect:non-scaling-stroke; }
+    .area-shade { fill:var(--curve); opacity:.035; }
+    .area-cursor { stroke:var(--curve); stroke-width:1; opacity:.18; vector-effect:non-scaling-stroke; }
+    .area-dot { position:absolute; width:6px; height:6px; border-radius:50%; background:var(--curve); transform:translate(-50%,50%); }
+    .decoder { position:fixed; width:1px; height:1px; opacity:0; pointer-events:none; left:0; bottom:0; }
+    .sr-only { position:absolute; width:1px; height:1px; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }
+    #error { color:#974d35; margin:14px 0; font-size:13px; }
+    #error[hidden] { display:none; }
+    @media(max-width:640px) {
+      main { --gap:12px; padding:16px 0 8px; }
+      .panel-label { font-size:clamp(13px,4.5vw,16px); }
+      .feedback-direction { margin-bottom:22px; }
+      .feedback-direction p { font-size:18px; }
+      .area-chart { height:112px; }
+      .scale-badge { font-size:clamp(9px,2.7vw,12px); }
+    }
+  </style>
+</head>
+<body>
+<noscript><style>main{display:none} .static-figure{width:100%;height:auto;display:block}</style><img class="static-figure" src="poster.png" alt="Three illustrative paths with increasing feedback: weak feedback, strong feedback, and autonomous recursive self-improvement."></noscript>
+<main aria-label="Knowledge with stronger feedback">
+  <div class="feedback-direction"><p>Stronger feedback</p><div class="feedback-arrow" aria-hidden="true"></div></div>
+  <p class="sr-only">Three illustrative paths with increasing feedback: weak feedback, strong feedback, and autonomous recursive self-improvement. Rust markers are new discoveries: diamonds for humans, triangles for AI. Charcoal regions are filled knowledge. Shapes use the same spatial scale across both figures. The plots show filled area over time on a shared linear scale, except RSI, which uses ten times the vertical range.</p>
+  <div class="panels">
+
+
+    <figure>
+      <h2 class="sr-only">AI · weak feedback</h2>
+      <div class="visual">
+        <canvas width="516" height="438" role="img" aria-label="Weak feedback: AI fills the convex hull after each human discovery, with slow frontier growth."></canvas>
+        <img class="poster" src="../convex-hull/circle-2.webp" alt="" width="516" height="438">
+      </div>
+      <figcaption class="sr-only">Filled knowledge and its area over time.</figcaption>
+      <div class="area-chart" role="img" aria-label="Weak AI feedback: filled area over time, on a linear scale shared across both figures.">
+        <div class="area-plot" aria-hidden="true">
+          <svg viewBox="0 0 1000 1000" preserveAspectRatio="none">
+            <path class="area-shade" d="M0 1000Z"/>
+            <path class="area-line" d="M0 1000"/>
+            <line class="area-cursor" x1="0" x2="0" y1="0" y2="1000"/>
+          </svg>
+          <span class="area-dot" style="left:0;bottom:0"></span>
+        </div>
+      </div>
+    </figure>
+    <figure>
+      <h2 class="sr-only">AI · strong feedback</h2>
+      <div class="visual">
+        <canvas width="516" height="438" role="img" aria-label="Strong feedback: increasingly frequent discoveries and AI infill rapidly expand the body of knowledge."></canvas>
+        <img class="poster" src="../convex-hull/circle-3.webp" alt="" width="516" height="438">
+      </div>
+      <figcaption class="sr-only">Filled knowledge and its area over time.</figcaption>
+      <div class="area-chart" role="img" aria-label="Strong AI feedback: filled area over time, on a linear scale shared across both figures.">
+        <div class="area-plot" aria-hidden="true">
+          <svg viewBox="0 0 1000 1000" preserveAspectRatio="none">
+            <path class="area-shade" d="M0 1000Z"/>
+            <path class="area-line" d="M0 1000"/>
+            <line class="area-cursor" x1="0" x2="0" y1="0" y2="1000"/>
+          </svg>
+          <span class="area-dot" style="left:0;bottom:0"></span>
+        </div>
+      </div>
+    </figure>
+    <figure>
+      <h2 class="sr-only">AI · true RSI</h2>
+      <div class="visual">
+        <canvas width="516" height="438" role="img" aria-label="Recursive self-improvement: AI makes frontier discoveries, fills the gaps and improves its own ability to run the next cycle. No human discoveries after the starting knowledge."></canvas>
+        <img class="poster" src="../convex-hull/circle-4.webp" alt="" width="516" height="438">
+      </div>
+      <figcaption class="sr-only">Filled knowledge and its area over time.</figcaption>
+      <div class="area-chart" role="img" aria-label="Recursive self-improvement: filled area over time, on a linear scale with ten times the vertical range of the other plots.">
+        <span class="scale-badge">10× vertical range</span>
+        <div class="area-plot" aria-hidden="true">
+          <svg viewBox="0 0 1000 1000" preserveAspectRatio="none">
+            <path class="area-shade" d="M0 1000Z"/>
+            <path class="area-line" d="M0 1000"/>
+            <line class="area-cursor" x1="0" x2="0" y1="0" y2="1000"/>
+          </svg>
+          <span class="area-dot" style="left:0;bottom:0"></span>
+        </div>
+      </div>
+    </figure>
+  </div>
+  <p id="error" role="alert" hidden></p>
+  <p class="sr-only" id="status">Loading the comparison.</p>
+  <video id="source" class="decoder" autoplay loop muted playsinline preload="auto" tabindex="-1" aria-hidden="true"></video>
+</main>
+<script id="area-data" type="application/json">{"fps":30,"duration":4.0,"hold":0.3,"yMin":0,"yMax":[60,60,600],"scale":"linear","unit":"multiples of initial filled area","names":["Weak AI feedback","Strong AI feedback","AI \u00b7 recursive self-improvement"],"series":[[1.0,1.663036,3.049385,4.254906,4.515298,4.577567,4.761484,4.780498,4.780498,4.780498,4.780505,4.9089,5.203694,5.208284,5.208284,5.208284,5.211848,5.385048,5.584318,5.584318,5.584318,5.584318,5.594079,5.691838,5.754745,5.754745,5.754745,5.754745,5.775097,5.918576,5.958478,5.958478,5.958478,5.958478,6.071838,6.321841,6.351395,6.351395,6.351395,6.351395,6.526124,6.764118,6.771815,6.771815,6.771815,6.775438,6.926081,7.058757,7.058757,7.058757,7.058757,7.070617,7.204206,7.274471,7.274471,7.274471,7.274471,7.308141,7.457249,7.501743,7.501743,7.501743,7.501743,7.601497,7.869168,7.911073,7.911073,7.911073,7.911073,8.054797,8.324385,8.338312,8.338312,8.338312,8.33957,8.475382,8.731703,8.731959,8.731959,8.731959,8.741381,8.875922,8.961393,8.961393,8.961393,8.961393,8.984589,9.105813,9.148847,9.148847,9.148847,9.148847,9.254008,9.559263,9.615968,9.615968,9.615968,9.615968,9.78362,10.105689,10.129754,10.129754,10.129754,10.130004,10.27535,10.457348,10.458857,10.458857,10.458857,10.465104,10.60188,10.70186,10.70186,10.70186,10.70186,10.752128,10.880143,10.899763,10.899763,10.899763,10.899763],[1.0,1.663036,3.049385,4.254906,4.517363,4.667477,4.780498,4.813976,5.158123,5.208284,5.353517,5.584318,5.602235,5.736256,5.754773,5.879818,5.958478,6.108853,6.351395,6.419981,6.76212,6.786034,7.028236,7.059835,7.233611,7.274471,7.448828,7.501743,7.809672,7.911073,8.247293,8.339145,8.670281,8.740696,8.954924,8.992244,9.148847,9.333495,9.615968,9.97484,10.131817,10.449283,10.515473,10.70186,10.844912,10.914445,11.390972,11.660693,11.938839,12.283462,12.403502,12.545191,12.758905,13.037172,13.278653,13.839158,14.143991,14.279691,14.467545,14.703627,15.102332,15.388935,15.827403,16.224887,16.486873,16.667585,16.883919,17.266135,17.869872,18.293678,18.568927,18.794897,19.132831,19.547152,20.05582,20.435448,20.708208,20.979341,21.477555,22.134791,22.593187,22.904427,23.198609,23.709725,24.381829,24.86243,25.200997,25.566143,26.209645,26.943551,27.448812,27.83145,28.396541,29.091242,29.620668,30.073841,30.735437,31.564373,32.098948,32.537614,33.252538,34.120184,34.688726,35.259471,35.986948,36.769577,37.596018,38.049799,38.88503,40.010445,40.448989,41.375614,42.211551,43.166627,43.621261,44.995813,45.72269,46.421131,47.568767,48.514401,49.339013],[1.0,1.663036,3.049385,4.254906,4.515298,4.613679,5.126059,5.897511,5.958478,5.958661,6.406136,7.204579,7.501743,7.501743,7.69218,8.517198,9.148847,9.148847,9.325208,10.297712,10.899763,10.899763,11.205438,12.353875,12.758919,12.758919,13.532114,14.656825,14.703627,14.99718,16.386287,16.742583,16.839519,18.190847,18.834367,18.888286,20.291876,20.97808,21.089202,22.712876,23.198609,23.59468,25.390042,25.488243,26.671365,27.843437,28.066766,30.139236,30.279892,31.933839,32.798759,33.771915,35.392097,35.923985,38.049799,38.408866,40.777398,41.156797,43.568925,44.190791,46.421131,47.671686,49.339013,51.661845,52.355883,55.370019,56.454284,58.468699,61.509786,62.479475,64.83882,68.092987,69.809043,71.53826,74.757785,78.166525,80.672251,82.753858,85.342575,88.676552,92.268684,95.902312,99.583472,103.306162,107.066134,110.870877,114.720322,118.608932,122.859519,128.310317,134.316759,138.761558,143.234877,150.710053,155.829379,162.56141,169.18912,177.134519,183.127191,192.501848,201.8528,210.222569,219.34947,229.673048,241.315709,253.590912,264.532319,278.029186,292.647079,308.994489,323.870265,341.252033,361.059873,383.837801,404.089255,430.93583,457.484355,486.782324,515.881015,553.127292,591.452875]],"rounds":[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,5,5,5,5,5,5,6,6,6,6,6,6,6,7,7,7,7,7,7,8,8,8,8,8,9,9,9,9,9,10,10,10,10,10,11,11,11,11,11,12,12,12,12,13,13,13,13,14,14,14,14,15,15,15,16,16,16,16,17,17,17,18,18,18,19,19,19,20],[0,0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,6,6,6,6,7,7,7,8,8,8,9,9,9,10,10,11,11,11,12,12,13,13,13,14,14,15,15,16,16,17,17,18,18,19,20,20,21,21,22,23,23,24,25,25,26,27,27,28,29,30,31,32,33,33,34,35,36,37,39,40,41,42,43,44,46,47,49,50,51,53,55,56,58,60,62,64,66,68,71,73,75,78,81,84,87,90,94,97,101,105,110,114,119]],"measurement":"Union of drawn islands and connections without AI; full convex-hull area after AI infill, including beyond the canvas. Initial infill interpolates by its opacity.","tiles":[2,3,4],"video":{"tileWidth":516,"tileHeight":438,"stride":560,"x":16,"y":16,"height":480},"sharedYMax":60}</script>
+<script>
+(() => {
+  'use strict';
+  const video=document.getElementById('source');
+  const error=document.getElementById('error');
+  const status=document.getElementById('status');
+  const contexts=[...document.querySelectorAll('canvas')].map(c=>c.getContext('2d'));
+  const posters=[...document.querySelectorAll('.poster')];
+  const AREA=JSON.parse(document.getElementById('area-data').textContent);
+  const charts=[...document.querySelectorAll('.area-chart')];
+  const lines=[...document.querySelectorAll('.area-line')];
+  const shades=[...document.querySelectorAll('.area-shade')];
+  const cursors=[...document.querySelectorAll('.area-cursor')];
+  const dots=[...document.querySelectorAll('.area-dot')];
+  const names=AREA.names;
+  const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
+  const y=(value,i)=>1000*(1-(value-AREA.yMin)/(AREA.yMax[i]-AREA.yMin));
+  let lastFrame=-1,frameRequest=0,ready=false,playAttempt=false,failed=false;
+  video.muted=true;video.loop=true;video.autoplay=!reducedMotion.matches;
+
+  function updateAreas(time) {
+    const frame=Math.min(AREA.series[0].length-1,Math.max(0,Math.floor((time+1e-6)*AREA.fps)));
+    if(frame===lastFrame)return;
+    lastFrame=frame;
+    const x=1000*frame/(AREA.series[0].length-1);
+    AREA.series.forEach((values,i)=>{
+      const value=values[frame],height=y(value,i);
+      const path=values.slice(0,frame+1).map((v,n)=>`${n?'L':'M'}${(1000*n/(values.length-1)).toFixed(2)} ${y(v,i).toFixed(2)}`).join(' ');
+      lines[i].setAttribute('d',path);
+      shades[i].setAttribute('d',`${path} L${x.toFixed(2)} 1000 L0 1000 Z`);
+      cursors[i].setAttribute('x1',x);cursors[i].setAttribute('x2',x);
+      dots[i].style.left=`${x/10}%`;dots[i].style.bottom=`${(1000-height)/10}%`;
+      charts[i].setAttribute('aria-label',`${names[i]}: filled area ${value.toFixed(1)} times the starting area at ${(frame/AREA.fps).toFixed(1)} seconds. Linear scale from ${AREA.yMin} to ${AREA.yMax[i]}${AREA.yMax[i]===10*AREA.sharedYMax?', ten times the vertical range of the other plots':', shared across both figures'}. Area includes growth beyond the animation frame.`);
+    });
+  }
+  function draw() {
+    if(video.readyState<2 || !video.videoWidth)return;
+    const {stride,x,y,tileWidth,tileHeight}=AREA.video;
+    contexts.forEach((ctx,i)=>ctx.drawImage(video,AREA.tiles[i]*stride+x,y,tileWidth,tileHeight,0,0,516,438));
+    posters.forEach(p=>p.hidden=true);
+    // Keep the curves on the playback clock, including every loop restart.
+    updateAreas(video.currentTime);
+  }
+  function paintStill() {
+    draw();requestAnimationFrame(()=>requestAnimationFrame(()=>draw()));
+  }
+  function cancelFrame() {
+    if(!frameRequest)return;
+    if(video.cancelVideoFrameCallback)video.cancelVideoFrameCallback(frameRequest);
+    else cancelAnimationFrame(frameRequest);
+    frameRequest=0;
+  }
+  function requestFrame() {
+    cancelFrame();if(video.paused)return;
+    const next=()=>{frameRequest=0;draw();requestFrame();};
+    frameRequest=video.requestVideoFrameCallback?video.requestVideoFrameCallback(next):requestAnimationFrame(next);
+  }
+  async function startPlayback() {
+    if(!ready || failed || document.hidden || playAttempt || reducedMotion.matches)return;
+    playAttempt=true;
+    try {
+      await video.play();
+      if(document.hidden || reducedMotion.matches)video.pause();
+      else status.textContent=`${contexts.length} synchronized animations, looping automatically.`;
+    } catch {
+      // Keep a useful final illustration if the browser blocks muted autoplay.
+      if(video.currentTime!==AREA.duration)video.currentTime=AREA.duration;paintStill();
+      status.textContent='Static comparison. Tap the figure to start the animation.';
+    } finally {playAttempt=false;}
+  }
+  function showError() {
+    failed=true;ready=false;video.pause();cancelFrame();
+    posters.forEach(p=>p.hidden=false);updateAreas(AREA.duration);
+    error.hidden=false;error.textContent='Animation unavailable; showing the final comparison.';
+  }
+  video.addEventListener('canplay',()=>{
+    ready=true;
+    if(reducedMotion.matches){video.pause();if(video.currentTime!==AREA.duration)video.currentTime=AREA.duration;}
+    paintStill();startPlayback();
+  });
+  video.addEventListener('seeked',paintStill);
+  video.addEventListener('timeupdate',()=>updateAreas(video.currentTime));
+  video.addEventListener('play',()=>{
+    if(document.hidden || reducedMotion.matches){video.pause();return;}
+    requestFrame();
+  });
+  video.addEventListener('pause',cancelFrame);
+  video.addEventListener('ended',()=>{video.currentTime=0;startPlayback();});
+  video.addEventListener('error',showError);
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)video.pause();else startPlayback();});
+  document.addEventListener('pointerdown',()=>{if(video.paused)startPlayback();});
+  reducedMotion.addEventListener('change',()=>{
+    if(reducedMotion.matches){video.pause();video.currentTime=AREA.duration;paintStill();}
+    else {video.currentTime=0;startPlayback();}
+  });
+  async function loadAnimation() {
+    try {
+      const response=await fetch('../convex-hull/circle-loop.mp4',{credentials:'same-origin'});
+      if(!response.ok)throw new Error('Animation unavailable');
+      video.src=URL.createObjectURL(await response.blob());video.load();
+    } catch {showError();}
+  }
+  updateAreas(AREA.duration);loadAnimation();
+})();
+</script>
+</body>
+</html>
