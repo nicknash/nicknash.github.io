@@ -128,6 +128,22 @@ def has_command(src: str, cmd: str) -> bool:
     return re.search(r"\\" + cmd + r"(?![a-zA-Z])", src) is not None
 
 
+# Metadata remains plain text, but Greek symbols must survive TeX stripping.
+TEX_TEXT_SYMBOLS = {
+    "LaTeX": "LaTeX", "TeX": "TeX", "ldots": "...",
+    "alpha": "α", "beta": "β", "gamma": "γ", "delta": "δ",
+    "epsilon": "ϵ", "varepsilon": "ε", "zeta": "ζ", "eta": "η",
+    "theta": "θ", "vartheta": "ϑ", "iota": "ι", "kappa": "κ",
+    "varkappa": "ϰ", "lambda": "λ", "mu": "μ", "nu": "ν",
+    "xi": "ξ", "pi": "π", "varpi": "ϖ", "rho": "ρ", "varrho": "ϱ",
+    "sigma": "σ", "varsigma": "ς", "tau": "τ", "upsilon": "υ",
+    "phi": "ϕ", "varphi": "φ", "chi": "χ", "psi": "ψ", "omega": "ω",
+    "Gamma": "Γ", "Delta": "Δ", "Theta": "Θ", "Lambda": "Λ",
+    "Xi": "Ξ", "Pi": "Π", "Sigma": "Σ", "Upsilon": "Υ",
+    "Phi": "Φ", "Psi": "Ψ", "Omega": "Ω",
+}
+
+
 def strip_tex(s: str) -> str:
     r"""Reduce a short TeX fragment to plain text, for the index and meta tags.
 
@@ -148,9 +164,9 @@ def strip_tex(s: str) -> str:
     s = re.sub(r"\\(?:emph|textit|textbf|texttt|textsc|textsl|underline|url)"
                r"\s*\{([^{}]*)\}", r"\1", s)
 
-    # Macros that stand for literal text.
-    for cmd, text in (("LaTeX", "LaTeX"), ("TeX", "TeX"), ("ldots", "...")):
-        s = re.sub(rf"\\{cmd}(?:\{{\}})?(?![a-zA-Z])", text, s)
+    # Match entire control words so \omega does not also match \omegathing.
+    s = re.sub(r"\\([a-zA-Z]+)(?:\{\})?",
+               lambda m: TEX_TEXT_SYMBOLS.get(m.group(1), m.group(0)), s)
 
     s = re.sub(r"\$([^$]*)\$", r"\1", s)
     s = re.sub(r"\\[a-zA-Z]+\s*", "", s)     # drop anything left over
@@ -314,7 +330,7 @@ def convert(page: Page, rewritten: str, figures: dict, verbose=False) -> str:
 
         env = tex_env()
         run(["latexml", "--quiet", "--includestyles",
-             f"--path={LIB}", f"--path={page.src.parent}",
+             f"--path={LIB}", f"--path={page.src.parent}", f"--path={ROOT}",
              "--dest", str(td / "doc.xml"), str(td / "doc.tex")],
             cwd=td, env=env, what=f"latexml on {page.src.name}")
 
@@ -329,7 +345,19 @@ def convert(page: Page, rewritten: str, figures: dict, verbose=False) -> str:
         cmd += [str(td / "doc.xml")]
         run(cmd, cwd=td, env=env, what=f"latexmlpost on {page.src.name}")
 
-        return read(td / "doc.html")
+        # LaTeXML writes raster graphics beside doc.html. Keep them with the
+        # final page and use content hashes: x1.png can refer to a different
+        # picture after an edit, so its old browser cache must not be reused.
+        raw = read(td / "doc.html")
+        dest = OUT if page.slug == "index" else OUT / page.slug
+        for graphic in td.glob("*.png"):
+            dest.mkdir(parents=True, exist_ok=True)
+            digest = hashlib.sha256(graphic.read_bytes()).hexdigest()[:12]
+            name = f"{graphic.stem}-{digest}{graphic.suffix}"
+            shutil.copy2(graphic, dest / name)
+            raw = raw.replace(f'src="{graphic.name}"', f'src="{name}"')
+
+        return raw
 
 
 # ---------------------------------------------------------------------------
