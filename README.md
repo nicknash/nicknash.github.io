@@ -26,6 +26,13 @@ That's the whole publishing step — the posts index is generated from whatever
 is in `content/posts/`, sorted by date. The same metadata generates the RSS
 feed at `/feed.xml`. Push to `main` and it deploys.
 
+On the Posts page, posts dated before 2026 appear below the divider
+“From the before-times”, separating writing restored from the old blog.
+
+Unfinished material parked in `content/drafts/` is not built or listed, even
+in the local preview. Move a file into `content/posts/` when ready to work on
+it there, with `\draft` to keep it unpublished.
+
 Pages that aren't posts go directly in `content/` and get their own URL from
 the filename — `content/about.tex` would serve at `/about/`. Add them to `NAV`
 in `build/build.py` to put them in the header. `content/index.tex` is the home

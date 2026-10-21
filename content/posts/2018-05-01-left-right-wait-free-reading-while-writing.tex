@@ -1,0 +1,214 @@
+\documentclass[11pt]{article}
+\usepackage{ghb}
+
+% Restored and combined from WordPress posts 549 and 552 on 2026-10-21.
+% Writing While Not Reading Too Much (2018-04-01)
+% Left-Right: Wait-free Reading While Writing (2018-05-01)
+% Original prose and code retained; repeated recaps and the simpler proof
+% omitted when combining. Corrected naming/return-order typos and minor
+% imprecisions in the proof. Memory fencing remains out of scope.
+\title{Left-Right: Wait-free Reading While Writing}
+\date{2018-05-01}
+\summary{The hair-shirt of obscure synchronization}
+\begin{document}
+
+Pedro Ramalhete and Andreia Craveiro's \href{https://github.com/pramalhe/ConcurrencyFreaks/blob/master/papers/left-right-2014.pdf}{Left-Right} allows for concurrent reading and writing of a data structure with wait-free reads that can run in parallel with a writer. You can think of it as a neat alternative to copy-on-write or a better reader-writer lock, but it's also interesting in its own right.
+
+In this post I'll present an implementation of Left-Right in C\# and describe how it works.
+
+\section{Starvation}
+
+The main features of the Left-Right construction are the following:
+
+\begin{enumerate}
+\item It's generic, works with any data structure, and doesn't affect the time complexity of any operations.
+
+\item Reads and writes can happen concurrently.
+
+\item Reading is always wait free.
+
+\item No allocation is required, so no garbage is generated, and no garbage collector is required.
+
+\item A writer cannot be starved by readers.
+\end{enumerate}
+
+The fifth property---that writers cannot be starved by readers---means that a write operation will never be prevented from completing by read operations. It is also the trickiest part of Left-Right.
+
+To begin with, I'm going to describe the so-called "No Version" variation of Left-Right. It satisfies the first four properties, but readers can (in very unlikely scenarios) starve a writer.
+
+Once you've got your head around this version of Left-Right, adding in the starvation freedom property is much easier to understand.
+
+\section{Reading, With One Indicator}
+
+We'll begin by describing how to use Left-Right to read a data structure. This will show the first key idea of Left-Right: It maintains \emph{two} versions of the data-structure, allowing reads to proceed concurrently with a writer.
+
+To keep the description of reads simple, we'll assume the existence of a so-called "Read Indicator", that is used to communicate in-progress reads with potential writers. Here's the interface a read-indicator exposes:
+
+\begin{verbatim}
+interface IReadIndicator
+{
+    // A reader calls this to tell writers that it is
+    // reading the data structure
+    void Arrive();
+    // A reader calls this to tell writers that
+    // it is no longer reading the data structure
+    void Depart();
+    // Returns true if a read is in progress (i.e.,
+    // any calls to Arrive without a matching Depart call)
+    bool IsOccupied { get; }
+}
+\end{verbatim}
+
+We'll ignore the implementation of \texttt{IReadIndicator} for now. Implementations can be very simple -- a single atomic counter will do (and be unscalable in the presence of many threads), or they can be quite intricate and more scalable.
+
+With our read-indicator in hand, the implementation of a read looks something like this:
+
+\begin{verbatim}
+// An array of the two instances of the data
+// structure we are coordinating access to. For this example, a List
+List[] _instances;
+// An index (either 0 or 1) that tells readers
+// which instance they can safely read.
+int _readIndex;
+// A read indicator, that a reader can use to inform a potential
+// writer that a read is in progress.
+IReadIndicator _readIndicator;
+int Read()
+{
+    _readIndicator.Arrive();
+    var idx = _readIndex;
+    var result = read(_instances[idx]);
+    _readIndicator.Depart();
+    return result;
+}
+\end{verbatim}
+
+This code is hopefully self-explanatory: readers just record their presence during reading.
+
+\section{Writing, With One Indicator}
+
+Writing is a bit trickier than reading, and goes something like this: Write to the instance of the data structure that we're sure there can be no readers reading, wait for readers to finish reading the other instance, and then write to that instance.
+
+A (toy) implementation would look something like this:
+
+\begin{verbatim}
+void Write()
+{
+    lock(_writersMutex)
+    {
+        var readIndex = _readIndex;
+        var nextReadIndex = Toggle(readIndex);
+        write(_instances[nextReadIndex]);
+        _readIndex = nextReadIndex;
+        while(_readIndicator.IsOccupied) ;
+        write(_instances[readIndex]);
+    }
+}
+\end{verbatim}
+
+The first thing to note about this is that writes are blocking: there can only be a single write in progress at once, hence the \texttt{\_writersMutex}.
+
+\section{Solving Write Starvation}
+
+Recall that readers mark \texttt{\_readIndicator} to communicate their reads to the writer. It is the wait on \texttt{\_readIndicator.IsOccupied} that opens up the possibility of writer starvation: new readers could continuously arrive, indefinitely delaying an in-progress write.
+
+Clearly, for the writer to avoid starvation it cannot wait on a \texttt{\_readIndicator} that new readers can mark. This echoes the original idea of Left-Right: keep two copies of the data structure so that writes can proceed during reads. So the key to avoiding starvation is to have \emph{two} read-indicators also.
+
+\section{Reading, With Two Indicators}
+
+Reading is similar to reading with a single read-indicator; there is just one additional step, readers read a variable \texttt{\_versionIndex} that determines which read-indicator they will mark:
+
+\begin{verbatim}
+// An array of the two instances of the data
+// structure we are coordinating access to.
+List[] _instances;
+// An index (either 0 or 1) that tells readers
+// which instance they can safely read.
+int _readIndex;
+// An index (either 0 or 1) that tells readers
+// which read-indicator they should mark.
+int _versionIndex;
+// An array of two 'read indicators' so a
+// reader can inform writers that it has a
+// read in progress
+IReadIndicator[] _readIndicators;
+int Read()
+{
+    var versionIndex = _versionIndex;
+    var readIndicator = _readIndicators[versionIndex];
+    readIndicator.Arrive();
+    var idx = _readIndex;
+    var result = read(_instances[idx]);
+    readIndicator.Depart();
+    return result;
+}
+\end{verbatim}
+
+This is so similar to the "No Version" read mechanism above that there isn't much to say about it, instead, let's look at writing, where the real differences lie.
+
+\section{Writing, With Two Indicators}
+
+Writing is again similar to the simpler "No Version" Left-Right, but includes \emph{two} waits. Roughly the way writing works is: Write to the instance we're sure no readers are reading, change \texttt{\_readIndex} so readers read the version we just wrote to, wait for any outstanding reads on that \texttt{\_readIndex} we want to write next, change \texttt{\_versionIndex} so readers mark the other read-indicator, wait for the outstanding reads to clear, and do the final write. That explanation is a bit of a mess, hopefully the code makes things a little clearer:
+
+\begin{verbatim}
+void Write()
+{
+    lock(_writersMutex)
+    {
+        var readIndex = _readIndex;
+        var nextReadIndex = Toggle(readIndex);
+        write(_instances[nextReadIndex]);
+        _readIndex = nextReadIndex;
+        var versionIndex = _versionIndex;
+        var nextVersionIndex = Toggle(versionIndex);
+        while(_readIndicators[nextVersionIndex].IsOccupied) ;
+        _versionIndex = nextVersionIndex;
+        while(_readIndicators[versionIndex].IsOccupied) ;
+        write(_instances[readIndex]);
+    }
+}
+\end{verbatim}
+
+Hopefully writing makes some intuitive sense, getting a confident feel for \emph{exactly} why it enforces both mutual exclusion between readers and writers, as well as ensures writing is starvation free is a little more effort. We'll try and do that in the next section.
+
+\section{Why This Is Correct}
+
+\subsection{Mutual Exclusion}
+
+To keep the argument clear, let's start with some definitions.
+
+Let's define the \emph{end-state} of a reader as the values of \texttt{\_versionIndex} and \texttt{\_readIndex} it has respectively witnessed at the time it calls \texttt{Depart}. So there are four possible reader end-states: \texttt{(0, 0), (0, 1), (1, 0)} and \texttt{(1, 1)}. After a reader calls \texttt{Depart} it is said to \emph{complete} and is not defined to be in any state.
+
+Let's also divide readers into two categories: \emph{pre-arrival} readers and \emph{post-arrival} readers. Pre-arrival readers have not called \texttt{Arrive} on a read-indicator yet. Post-arrival readers have called \texttt{Arrive} on a read-indicator.
+
+Let's introduce a small bit of notation for writes. By a writer "performing" a \texttt{Wait(V, R)} we mean the writer waited until \texttt{\_readIndicators[V].IsOccupied} returned \texttt{false}, while \texttt{\_readIndex} was equal to \texttt{R}.
+
+Now we can note the \emph{elimination property} of \texttt{Wait(V, R)}: After a writer performs \texttt{Wait(V, R)} then there can be no reader with end-state \texttt{(V, Toggle(R))}. This is because any pre-arrival readers using indicator \texttt{V} will enter state \texttt{(V, R)}, and any post-arrival readers with end-state \texttt{(V, Toggle(R))} will complete.
+
+Now consider the two waits performed during a \texttt{Write}. Let's refer to the values of \texttt{\_versionIndex} and \texttt{\_readIndex} at the beginning of the write as \texttt{V0} and \texttt{R0} respectively:
+
+\begin{enumerate}
+\item The first wait is of the form \texttt{Wait(Toggle(V0), Toggle(R0))}, which by the elimination property means there can be no reader with end-state \texttt{(Toggle(V0), R0)}.
+
+\item The second wait is of the form \texttt{Wait(V0, Toggle(R0))}, which by the elimination property means there can be no reader with end-state \texttt{(V0, R0)}.
+\end{enumerate}
+
+Now we can spell out how these waits enforce mutual exclusion. A write is mutually exclusive with a read if it is writing to instance \texttt{readIndex} and there are no readers with end-states \texttt{(0, readIndex)} or \texttt{(1, readIndex)}. But these are exactly the end-states eliminated by the two waits performed during a \texttt{Write} before it performs its second mutation of the data structure (i.e., \texttt{write(\_instances[readIndex])}). Thus the second mutation is mutually exclusive with readers.
+
+Given that this second mutation is mutually exclusive with readers, then clearly a subsequent call to \texttt{Write} can safely mutate this instance first, without waiting. This just leaves the very first mutation performed by the very first call to \texttt{Write}, which must be mutually exclusive with readers since it targets the toggle of the initial value of \texttt{\_readIndex}.
+
+The above stops short of formalising things into a proof (although it wouldn't be too much more effort), but it's enough to be fairly confident that Left-Right enforces mutual exclusion.
+
+The whole point of this more complicated version of Left-Right compared to the simpler version is that writers cannot be starved by readers, so let's look at that next.
+
+\subsection{Starvation Freedom}
+
+What is meant by starvation freedom of the writer by readers is that in any wait performed by a \texttt{Write} operation, that wait must end when \emph{only} the readers that were in-progress at the moment it began waiting complete.
+
+It's pretty clear both of the waits performed in \texttt{Write} satisfy this, both are of the form \texttt{Wait(Toggle(V), .)}, where \texttt{V} is the current value of \texttt{\_versionIndex}. That is, while new readers are marking \texttt{\_readIndicators[V]}, the wait depends only on those that selected \texttt{\_readIndicators[Toggle(V)]} before the wait began, and so the wait will end when these existing readers complete.
+
+\section{Memory Fencing}
+
+There is still a large gap in the description of Left-Right given so far: it omits all details of memory fencing. The descriptions above all rely on viewing the code as sequentially consistent. An actual implementation is likely to diverge from this. Generally speaking, in my experience, a good working assumption for code implementing a mutex (or lock free or wait free code in general) is that any implementation that hasn't been model-checked in some way -- even where the underlying construction has been proved correct -- is buggy. The source code for this Left-Right implementation (including a simple RelaSharp test) is \href{https://github.com/nicknash/SharpLeftRight}{here}, and the original NuGet package is \href{https://www.nuget.org/packages/SharpLeftRight/1.0.1}{SharpLeftRight}.
+
+\end{document}

@@ -60,6 +60,9 @@ SITE = {
 # rearranges the header.
 NAV = [("/posts/", "Posts")]
 
+# Earlier writing belongs to the old blog, before this one began in 2026.
+OLD_BLOG_BEFORE = date(2026, 1, 1)
+
 
 # ---------------------------------------------------------------------------
 # Small helpers
@@ -620,10 +623,11 @@ def write_page(page: Page, body: str):
 
 def build_posts_index(posts: list[Page]):
     """The posts listing. Generated, so publishing is just adding a .tex."""
-    rows = []
+    current_rows, old_rows = [], []
     for p in posts:
         summary = (f'<p class="post-summary">{html.escape(strip_tex(p.summary))}</p>'
                    if p.summary else "")
+        rows = old_rows if p.date < OLD_BLOG_BEFORE else current_rows
         rows.append(
             f'      <li class="post-item">\n'
             f'        <a class="post-link" href="{p.url}">\n'
@@ -632,8 +636,15 @@ def build_posts_index(posts: list[Page]):
             f'        </a>\n{summary}\n'
             f'      </li>'
         )
-    listing = ("<ul class=\"post-list\">\n" + "\n".join(rows) + "\n    </ul>"
-               if rows else '<p class="empty">No posts yet.</p>')
+    groups = []
+    for heading, rows in [(None, current_rows),
+                          ("From the before-times", old_rows)]:
+        if not rows:
+            continue
+        if heading:
+            groups.append(f'<h2 class="post-era-divider">{heading}</h2>')
+        groups.append('<ul class="post-list">\n' + "\n".join(rows) + '\n    </ul>')
+    listing = "\n".join(groups) or '<p class="empty">No posts yet.</p>'
 
     doc = render_template(
         "page.html",
