@@ -621,11 +621,20 @@ def write_page(page: Page, body: str):
     page.out_dir = dest
 
 
+def summary_html(summary: str) -> str:
+    r"""Keep simple \textit and \emph spans in the listing's summary text."""
+    # Escape the source before adding markup; metadata and RSS stay plain text.
+    escaped = html.escape(summary, quote=False)
+    formatted = re.sub(r"\\(?:emph|textit)\s*\{([^{}]*)\}",
+                       r"<em>\1</em>", escaped)
+    return strip_tex(formatted)
+
+
 def build_posts_index(posts: list[Page]):
     """The posts listing. Generated, so publishing is just adding a .tex."""
     current_rows, old_rows = [], []
     for p in posts:
-        summary = (f'<p class="post-summary">{html.escape(strip_tex(p.summary))}</p>'
+        summary = (f'<p class="post-summary">{summary_html(p.summary)}</p>'
                    if p.summary else "")
         rows = old_rows if p.date < OLD_BLOG_BEFORE else current_rows
         rows.append(
